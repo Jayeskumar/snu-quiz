@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#46178f">
+<meta name="description" content="SNU Quiz — a live, Kahoot-style quiz on Java Linked Lists, Stacks, Queues and LeetCode problems. No server, no database.">
+<title>SNU Quiz — Live DSA Quiz</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body class="screen-home">
+
+<!-- animated backdrop -->
+<div class="bg" aria-hidden="true">
+  <span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
+  <span class="blob b4"></span><span class="blob b5"></span><span class="blob b6"></span>
+</div>
+
+<button id="btnSound" class="icon-btn sound-toggle" title="Toggle sound" aria-label="Toggle sound">
+  <span class="on">&#128266;</span><span class="off">&#128263;</span>
+</button>
+
+<main id="app">
+
+<!-- ═══════════════ HOME ═══════════════ -->
+<section class="screen" data-screen="home">
+  <div class="stack center">
+    <div class="logo">
+      <div class="logo-mark">
+        <i class="sh tri"></i><i class="sh dia"></i><i class="sh cir"></i><i class="sh sqr"></i>
+      </div>
+      <h1 class="logo-word">SNU<span>Quiz</span></h1>
+      <p class="tagline">Linked Lists &middot; Stacks &middot; Queues &middot; LeetCode</p>
+    </div>
+
+    <div class="card home-card">
+      <div class="join-inline">
+        <input id="homePin" class="pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+               placeholder="Game PIN" autocomplete="off" aria-label="Game PIN">
+        <button id="btnHomeJoin" class="btn btn-dark">Enter</button>
+      </div>
+      <div class="or"><span>or</span></div>
+      <div class="home-actions">
+        <button id="btnHost" class="btn btn-primary btn-lg">Host a live game</button>
+        <button id="btnSolo" class="btn btn-ghost">Solo practice</button>
+        <button id="btnBrowse" class="btn btn-ghost">Browse questions</button>
+      </div>
+    </div>
+    <p class="fineprint">Peer&#8209;to&#8209;peer. No account, no server, no database.</p>
+  </div>
+</section>
+
+<!-- ═══════════════ SETUP (host + solo) ═══════════════ -->
+<section class="screen" data-screen="setup">
+  <div class="sheet">
+    <header class="sheet-head">
+      <button class="icon-btn back" data-nav="home" aria-label="Back">&#8592;</button>
+      <h2 id="setupTitle">Game setup</h2>
+    </header>
+
+    <div class="sheet-body">
+      <label class="field-label">Topics</label>
+      <div id="topicList" class="topic-grid"></div>
+      <div class="topic-quick">
+        <button class="chip-btn" data-topics="all">Select all</button>
+        <button class="chip-btn" data-topics="none">Clear</button>
+      </div>
+
+      <label class="field-label" for="qCount">Questions <b id="qCountOut">15</b>
+        <span class="hint" id="qPool"></span>
+      </label>
+      <input id="qCount" type="range" min="5" max="60" step="1" value="15" class="range">
+
+      <label class="field-label" for="qTime">Seconds per question <b id="qTimeOut">20</b></label>
+      <input id="qTime" type="range" min="5" max="120" step="5" value="20" class="range">
+
+      <label class="field-label">Difficulty</label>
+      <div class="seg" id="diffSeg" role="group">
+        <button class="seg-btn is-on" data-diff="all">All</button>
+        <button class="seg-btn" data-diff="easy">Easy</button>
+        <button class="seg-btn" data-diff="medium">Medium</button>
+        <button class="seg-btn" data-diff="hard">Hard</button>
+      </div>
+
+      <label class="field-label">Options</label>
+      <label class="switch"><input type="checkbox" id="optShuffle" checked><span></span>Shuffle answer order</label>
+      <label class="switch"><input type="checkbox" id="optStreak" checked><span></span>Streak bonus points</label>
+      <label class="switch"><input type="checkbox" id="optExplain" checked><span></span>Show explanations</label>
+      <label class="switch host-only"><input type="checkbox" id="optAutoNext"><span></span>Auto&#8209;advance between questions</label>
+      <label class="switch host-only"><input type="checkbox" id="optProjector"><span></span>Projector mode &mdash; hide question text on phones</label>
+    </div>
+
+    <footer class="sheet-foot">
+      <button id="btnStartGame" class="btn btn-primary btn-lg btn-block">Continue</button>
+    </footer>
+  </div>
+</section>
+
+<!-- ═══════════════ HOST LOBBY ═══════════════ -->
+<section class="screen" data-screen="lobby">
+  <div class="lobby">
+    <div class="lobby-top">
+      <div class="pin-card">
+        <div class="pin-label">Join at <b id="joinHost">this page</b></div>
+        <div class="pin-row">
+          <span class="pin-label2">Game PIN:</span>
+          <span id="lobbyPin" class="pin-big">------</span>
+        </div>
+      </div>
+      <div class="qr-card">
+        <div id="qrBox" class="qr"></div>
+        <button id="btnCopyLink" class="btn btn-tiny">Copy invite link</button>
+      </div>
+    </div>
+
+    <div class="lobby-mid">
+      <div class="player-count"><b id="playerCount">0</b> <span>players</span></div>
+      <div id="playerChips" class="player-chips"></div>
+      <p id="lobbyHint" class="lobby-hint">Waiting for the connection to open&hellip;</p>
+    </div>
+
+    <div class="lobby-bottom">
+      <button class="btn btn-ghost" data-nav="home">Cancel</button>
+      <button id="btnLobbyStart" class="btn btn-primary btn-lg" disabled>Start</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ PLAYER: JOIN ═══════════════ -->
+<section class="screen" data-screen="join">
+  <div class="stack center">
+    <div class="card join-card">
+      <h2 class="join-h">Join the game</h2>
+      <input id="joinPin" class="pin-input big" inputmode="numeric" pattern="[0-9]*" maxlength="6"
+             placeholder="Game PIN" autocomplete="off" aria-label="Game PIN">
+      <input id="joinNick" class="pin-input big" maxlength="14" placeholder="Nickname"
+             autocomplete="off" aria-label="Nickname">
+      <p id="joinError" class="err" role="alert"></p>
+      <button id="btnJoinGo" class="btn btn-dark btn-lg btn-block">Enter</button>
+      <button class="btn btn-ghost btn-block" data-nav="home">Back</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ PLAYER: WAITING ═══════════════ -->
+<section class="screen" data-screen="waiting">
+  <div class="stack center">
+    <div class="nick-badge" id="waitNick">&nbsp;</div>
+    <div class="pulse-dots"><i></i><i></i><i></i></div>
+    <h2 class="wait-h">You're in!</h2>
+    <p class="wait-p">See your nickname on the host's screen?</p>
+    <button class="btn btn-ghost" data-nav="home">Leave</button>
+  </div>
+</section>
+
+<!-- ═══════════════ GET READY ═══════════════ -->
+<section class="screen" data-screen="ready">
+  <div class="stack center">
+    <p id="readyTopic" class="ready-topic"></p>
+    <h2 class="ready-h" id="readyText">Get ready</h2>
+    <div class="countdown" id="readyNum">3</div>
+  </div>
+</section>
+
+<!-- ═══════════════ QUESTION ═══════════════ -->
+<section class="screen" data-screen="question">
+  <div class="qwrap">
+    <header class="qhead">
+      <span class="pill" id="qProgress">1 of 10</span>
+      <span class="pill pill-dim" id="qTopic"></span>
+      <span class="pill pill-dim" id="qDiff"></span>
+    </header>
+
+    <h2 class="qtext" id="qText"></h2>
+    <pre class="qcode" id="qCode" hidden></pre>
+
+    <div class="qmid">
+      <div class="timer" id="qTimer">
+        <svg viewBox="0 0 100 100" aria-hidden="true">
+          <circle class="t-bg" cx="50" cy="50" r="45"></circle>
+          <circle class="t-fg" id="timerArc" cx="50" cy="50" r="45"></circle>
+        </svg>
+        <span id="timerNum">20</span>
+      </div>
+      <div class="answered-box host-only">
+        <b id="answeredNum">0</b><span>Answers</span>
+      </div>
+    </div>
+
+    <div class="answers" id="answers">
+      <button class="ans a0" data-i="0"><i class="sh tri"></i><span></span></button>
+      <button class="ans a1" data-i="1"><i class="sh dia"></i><span></span></button>
+      <button class="ans a2" data-i="2"><i class="sh cir"></i><span></span></button>
+      <button class="ans a3" data-i="3"><i class="sh sqr"></i><span></span></button>
+    </div>
+
+    <footer class="qfoot driver-only">
+      <button id="btnSkip" class="btn btn-ghost btn-tiny">Skip timer</button>
+    </footer>
+    <p class="locked-note" id="lockedNote" hidden>Answer locked in &mdash; hang tight</p>
+  </div>
+</section>
+
+<!-- ═══════════════ REVEAL ═══════════════ -->
+<section class="screen" data-screen="reveal">
+  <div class="reveal">
+    <div class="verdict" id="verdict">
+      <div class="verdict-icon" id="verdictIcon">&#10003;</div>
+      <h2 id="verdictText">Correct</h2>
+      <p class="streak" id="verdictStreak" hidden></p>
+      <div class="points" id="verdictPoints">+0</div>
+      <p class="rankline" id="verdictRank"></p>
+    </div>
+
+    <div class="host-only bars-wrap">
+      <div class="bars" id="bars">
+        <div class="bar-col"><div class="bar b0"><span>0</span></div><i class="sh tri"></i></div>
+        <div class="bar-col"><div class="bar b1"><span>0</span></div><i class="sh dia"></i></div>
+        <div class="bar-col"><div class="bar b2"><span>0</span></div><i class="sh cir"></i></div>
+        <div class="bar-col"><div class="bar b3"><span>0</span></div><i class="sh sqr"></i></div>
+      </div>
+    </div>
+
+    <div class="explain card" id="explainBox" hidden>
+      <b id="explainAnswer"></b>
+      <p id="explainText"></p>
+    </div>
+
+    <button id="btnNext" class="btn btn-primary btn-lg driver-only">Next</button>
+  </div>
+</section>
+
+<!-- ═══════════════ SCOREBOARD ═══════════════ -->
+<section class="screen" data-screen="scoreboard">
+  <div class="board">
+    <h2 class="board-h">Scoreboard</h2>
+    <ol id="boardList" class="board-list"></ol>
+    <p id="boardYou" class="board-you"></p>
+    <button id="btnBoardNext" class="btn btn-primary btn-lg host-only">Next</button>
+  </div>
+</section>
+
+<!-- ═══════════════ PODIUM ═══════════════ -->
+<section class="screen" data-screen="podium">
+  <canvas id="confetti" class="confetti"></canvas>
+  <div class="podium-wrap">
+    <h2 class="board-h">Final results</h2>
+    <div class="podium" id="podium"></div>
+    <ol id="restList" class="board-list slim"></ol>
+    <p id="podiumYou" class="board-you"></p>
+    <div class="row-actions">
+      <button id="btnReview" class="btn btn-ghost">Review answers</button>
+      <button id="btnAgain" class="btn btn-primary">Play again</button>
+      <button class="btn btn-ghost" data-nav="home">Home</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ REVIEW ═══════════════ -->
+<section class="screen" data-screen="review">
+  <div class="sheet">
+    <header class="sheet-head">
+      <button class="icon-btn back" data-nav="podium" aria-label="Back">&#8592;</button>
+      <h2>Review</h2>
+    </header>
+    <div class="sheet-body" id="reviewBody"></div>
+  </div>
+</section>
+
+<!-- ═══════════════ BROWSE ═══════════════ -->
+<section class="screen" data-screen="browse">
+  <div class="sheet">
+    <header class="sheet-head">
+      <button class="icon-btn back" data-nav="home" aria-label="Back">&#8592;</button>
+      <h2>Question bank</h2>
+    </header>
+    <div class="sheet-body">
+      <input id="browseSearch" class="text-input" placeholder="Search questions&hellip;" aria-label="Search questions">
+      <div id="browseStats" class="browse-stats"></div>
+      <div id="browseBody"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ LOADING / ERROR ═══════════════ -->
+<section class="screen" data-screen="boot">
+  <div class="stack center">
+    <div class="pulse-dots"><i></i><i></i><i></i></div>
+    <p class="wait-p" id="bootMsg">Loading question bank&hellip;</p>
+  </div>
+</section>
+
+</main>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="vendor/qrcode.min.js"></script>
+<script src="vendor/peerjs.min.js"></script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+{
+ "version": 1,
+ "banks": [
+  {
+   "key": "ll-java",
+   "label": "Linked Lists in Java",
+   "icon": "🔗",
+   "file": "ll-java.json",
+   "count": 26
+  },
+  {
+   "key": "ll-leetcode",
+   "label": "LeetCode: Linked Lists",
+   "icon": "🧩",
+   "file": "ll-leetcode.json",
+   "count": 26
+  },
+  {
+   "key": "stacks",
+   "label": "Stacks",
+   "icon": "📚",
+   "file": "stacks.json",
+   "count": 24
+  },
+  {
+   "key": "queues",
+   "label": "Queues & Deques",
+   "icon": "🚶",
+   "file": "queues.json",
+   "count": 24
+  },
+  {
+   "key": "sq-leetcode",
+   "label": "LeetCode: Stacks & Queues",
+   "icon": "🎯",
+   "file": "sq-leetcode.json",
+   "count": 22
+  },
+  {
+   "key": "mixed",
+   "label": "Problem Solving & Complexity",
+   "icon": "🧠",
+   "file": "mixed.json",
+   "count": 18
+  }
+ ]
+}

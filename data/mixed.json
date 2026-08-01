@@ -1,0 +1,276 @@
+{
+ "key": "mixed",
+ "label": "Problem Solving & Complexity",
+ "questions": [
+  {
+   "id": "mix-01",
+   "topic": "Problem Solving",
+   "difficulty": "easy",
+   "question": "A text editor must undo the most recent edit first. Which structure best stores the undo history?",
+   "code": "",
+   "options": [
+    "A FIFO queue",
+    "A min-heap keyed by edit timestamp",
+    "A LIFO stack",
+    "An unsorted list scanned for the newest edit"
+   ],
+   "answer": 2,
+   "explanation": "Undo needs last-in-first-out access, and a stack gives O(1) push and pop of the newest edit. A queue would hand back the oldest edit instead."
+  },
+  {
+   "id": "mix-02",
+   "topic": "Problem Solving",
+   "difficulty": "easy",
+   "question": "Which java.util type does the Java documentation point to as the preferred LIFO stack implementation?",
+   "code": "",
+   "options": [
+    "java.util.Stack, since it is the named stack class",
+    "PriorityQueue with a reverse comparator",
+    "Vector, because it is synchronized",
+    "ArrayDeque"
+   ],
+   "answer": 3,
+   "explanation": "The Deque docs recommend ArrayDeque as a stack: it beats the legacy synchronized Stack and avoids LinkedList's per-node allocation and pointer chasing."
+  },
+  {
+   "id": "mix-03",
+   "topic": "Problem Solving",
+   "difficulty": "easy",
+   "question": "A graph traversal must visit every node at distance 1 before any node at distance 2. Which structure drives that order?",
+   "code": "",
+   "options": [
+    "A stack",
+    "A queue",
+    "A max-heap of node degrees",
+    "Recursion using the JVM call stack"
+   ],
+   "answer": 1,
+   "explanation": "Breadth-first order needs FIFO: neighbours are enqueued as they are discovered and leave in discovery order, so all distance-1 nodes are processed first."
+  },
+  {
+   "id": "mix-04",
+   "topic": "Problem Solving",
+   "difficulty": "easy",
+   "question": "Why do linked-list routines so often allocate a dummy (sentinel) node in front of the real head?",
+   "code": "",
+   "options": [
+    "It stores the length, making size() O(1)",
+    "It makes the list circular and doubly linked",
+    "It removes the special case of inserting or deleting the head",
+    "It halves the number of pointer hops during traversal"
+   ],
+   "answer": 2,
+   "explanation": "With a sentinel every real node has a predecessor, so head changes need no separate branch; the method simply returns dummy.next at the end."
+  },
+  {
+   "id": "mix-05",
+   "topic": "Problem Solving",
+   "difficulty": "easy",
+   "question": "For a list of exactly 6 nodes, which node does slow point to once this loop ends?",
+   "code": "ListNode slow = head, fast = head;\nwhile (fast != null && fast.next != null) {\n    slow = slow.next;\n    fast = fast.next.next;\n}",
+   "options": [
+    "The 3rd node, the first of the two middle nodes",
+    "The 4th node, the second of the two middle nodes",
+    "The 5th node",
+    "The last node"
+   ],
+   "answer": 1,
+   "explanation": "fast moves twice as fast, so slow lands at index n/2; with n = 6 that is index 3, the second of the two middles. Stopping at the first middle needs a different guard."
+  },
+  {
+   "id": "mix-06",
+   "topic": "Problem Solving",
+   "difficulty": "medium",
+   "question": "Appending to an ArrayList that doubles its backing array when full: which pair of costs is exact?",
+   "code": "",
+   "options": [
+    "O(1) amortized and O(1) worst case",
+    "O(log n) amortized and O(n) worst case",
+    "O(1) amortized and O(n) worst case",
+    "O(n) amortized and O(n) worst case"
+   ],
+   "answer": 2,
+   "explanation": "A growth step copies everything, costing O(n), but doubling makes copies rare: n appends total O(n) work, so O(1) amortized with an O(n) worst-case single append."
+  },
+  {
+   "id": "mix-07",
+   "topic": "Problem Solving",
+   "difficulty": "medium",
+   "question": "Reversing a singly linked list of n nodes: how does auxiliary space compare between the recursive and iterative versions?",
+   "code": "",
+   "options": [
+    "Recursion O(n) call stack, iteration O(1)",
+    "Both are O(1)",
+    "Recursion O(1), because Java optimises tail calls",
+    "Recursion O(log n), iteration O(n)"
+   ],
+   "answer": 0,
+   "explanation": "Every recursive call holds a frame until the base case returns, so depth n costs O(n) stack. The loop keeps only prev, curr and next, and the JVM does no tail-call elimination."
+  },
+  {
+   "id": "mix-08",
+   "topic": "Problem Solving",
+   "difficulty": "medium",
+   "question": "What is the tightest bound on this loop over a java.util.LinkedList holding n elements?",
+   "code": "LinkedList<Integer> list = makeList(n);\nlong sum = 0;\nfor (int i = 0; i < list.size(); i++) {\n    sum += list.get(i);\n}",
+   "options": [
+    "O(n^2)",
+    "O(n), since each get is O(1)",
+    "O(n log n)",
+    "O(n) amortized, O(n log n) worst case"
+   ],
+   "answer": 0,
+   "explanation": "LinkedList.get(i) walks from the nearer end, so index i costs O(i); summing that over all i is O(n^2). A for-each or Iterator would make the same scan O(n)."
+  },
+  {
+   "id": "mix-09",
+   "topic": "Problem Solving",
+   "difficulty": "medium",
+   "question": "Scanning n ints in order is usually far faster from an array than from a linked list. What is the main reason?",
+   "code": "",
+   "options": [
+    "Array scanning has a lower asymptotic complexity",
+    "Contiguous memory lets one cache line serve many elements",
+    "Linked lists must be kept sorted to be traversed",
+    "Array access skips the JVM's bounds checking"
+   ],
+   "answer": 1,
+   "explanation": "Both scans are O(n), but array elements share cache lines and are prefetched, while linked nodes sit scattered on the heap so each hop risks a cache miss."
+  },
+  {
+   "id": "mix-10",
+   "topic": "Problem Solving",
+   "difficulty": "medium",
+   "question": "This deque code reports the maximum of every window of size k. What is its total running time over n elements?",
+   "code": "Deque<Integer> dq = new ArrayDeque<>();\nfor (int r = 0; r < n; r++) {\n    while (!dq.isEmpty() && a[dq.peekLast()] <= a[r]) dq.pollLast();\n    dq.addLast(r);\n    if (dq.peekFirst() <= r - k) dq.pollFirst();\n    if (r >= k - 1) out[r - k + 1] = a[dq.peekFirst()];\n}",
+   "options": [
+    "O(n k)",
+    "O(n log k)",
+    "O(n log n)",
+    "O(n)"
+   ],
+   "answer": 3,
+   "explanation": "Each index is added once and removed at most once, so the inner while loop performs O(n) pops in total across the entire scan, giving amortized O(1) per element."
+  },
+  {
+   "id": "mix-11",
+   "topic": "Problem Solving",
+   "difficulty": "medium",
+   "question": "You rewrite a deep recursive DFS as a loop with an explicit ArrayDeque of frames. What is the real benefit?",
+   "code": "",
+   "options": [
+    "The traversal order becomes breadth-first",
+    "Auxiliary space drops to O(1)",
+    "Frames move to the heap, so deep inputs avoid StackOverflowError",
+    "The time complexity improves by a logarithmic factor"
+   ],
+   "answer": 2,
+   "explanation": "The same O(depth) state is still stored, but on the heap, bounded by available memory rather than the fixed JVM thread stack. Visit order and time cost are unchanged."
+  },
+  {
+   "id": "mix-12",
+   "topic": "Problem Solving",
+   "difficulty": "medium",
+   "question": "Deciding whether a sorted int array contains two values summing to a target. Which approach is best in time and space?",
+   "code": "",
+   "options": [
+    "Two pointers from both ends: O(n) time, O(1) extra space",
+    "HashSet of seen values: O(n) time, O(n) extra space",
+    "Binary search for each element: O(n log n) time",
+    "Nested loops over all pairs: O(n^2) time, O(1) space"
+   ],
+   "answer": 0,
+   "explanation": "Sortedness lets you shrink the range deterministically: move left up when the sum is too small, right down when too large. One linear pass, no extra storage."
+  },
+  {
+   "id": "mix-13",
+   "topic": "Problem Solving",
+   "difficulty": "medium",
+   "question": "Why can a DFS with an explicit stack report a longer hop count than BFS on an unweighted graph?",
+   "code": "",
+   "options": [
+    "DFS cannot detect already-visited nodes",
+    "DFS can settle a node via a deep path before the short one",
+    "DFS always uses more memory, forcing early termination",
+    "DFS reaches only a spanning subset of the vertices"
+   ],
+   "answer": 1,
+   "explanation": "LIFO order dives deep first, so a node may be finalised along a long path. BFS's FIFO order settles nodes in nondecreasing distance, which is what guarantees shortest hops."
+  },
+  {
+   "id": "mix-14",
+   "topic": "Problem Solving",
+   "difficulty": "hard",
+   "question": "A queue built from an in-stack and an out-stack refills the out-stack only when it is empty. What does one dequeue cost?",
+   "code": "",
+   "options": [
+    "O(n) amortized",
+    "O(log n) amortized",
+    "O(1) worst case",
+    "O(1) amortized, O(n) worst case"
+   ],
+   "answer": 3,
+   "explanation": "Each element is moved between the two stacks at most once, so m operations cost O(m) overall, yet the single dequeue that triggers a transfer touches up to n elements."
+  },
+  {
+   "id": "mix-15",
+   "topic": "Problem Solving",
+   "difficulty": "hard",
+   "question": "In Floyd's cycle detection the pointers meet inside the cycle, then one restarts at the head and both step by one. Where do they meet?",
+   "code": "",
+   "options": [
+    "The node where the cycle begins",
+    "The node halfway around the cycle",
+    "The node just before the earlier meeting point",
+    "The same meeting point as before"
+   ],
+   "answer": 0,
+   "explanation": "If the tail before the cycle has length m, the meeting point lies exactly m steps from the cycle entry, so m single steps from the head and from the meeting point converge there."
+  },
+  {
+   "id": "mix-16",
+   "topic": "Problem Solving",
+   "difficulty": "hard",
+   "question": "Test whether a singly linked list is a palindrome in O(n) time and O(1) extra space. Which plan meets both limits?",
+   "code": "",
+   "options": [
+    "Push every value on a stack, then re-walk and pop to compare",
+    "Copy the values into an array and use two pointers",
+    "Find the middle, reverse the second half in place, compare, restore",
+    "Recurse to the tail and compare while the calls unwind"
+   ],
+   "answer": 2,
+   "explanation": "Only in-place reversal avoids extra storage. The stack and array copies both need O(n) space, and the recursive version keeps O(n) frames on the call stack."
+  },
+  {
+   "id": "mix-17",
+   "topic": "Problem Solving",
+   "difficulty": "hard",
+   "question": "Array a holds positive ints. What is the tightest bound on this loop's running time?",
+   "code": "int i = 0, sum = 0, best = 0;\nfor (int r = 0; r < n; r++) {\n    sum += a[r];\n    while (sum > limit) sum -= a[i++];\n    best = Math.max(best, r - i + 1);\n}",
+   "options": [
+    "O(n^2), because a while loop is nested in the for loop",
+    "O(n log n)",
+    "O(n) on average but O(n^2) in the worst case",
+    "O(n), since i only ever moves forward, at most n times"
+   ],
+   "answer": 3,
+   "explanation": "The inner while never rewinds i, so it executes at most n times across the whole run. The nesting is amortized, not multiplicative, giving a linear total."
+  },
+  {
+   "id": "mix-18",
+   "topic": "Problem Solving",
+   "difficulty": "hard",
+   "question": "A dynamic array doubles when full and halves when it drops below one quarter full. What does a push or pop cost?",
+   "code": "",
+   "options": [
+    "O(log n) amortized",
+    "O(1) amortized, with occasional O(n) resizes",
+    "O(n) amortized, because resizes can cascade",
+    "O(1) worst case for every single operation"
+   ],
+   "answer": 1,
+   "explanation": "The one-quarter shrink threshold leaves slack after each resize, so at least n/2 cheap operations must happen before the next one, spreading the O(n) copies to O(1) each."
+  }
+ ]
+}

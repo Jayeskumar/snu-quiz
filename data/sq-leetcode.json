@@ -1,0 +1,336 @@
+{
+ "key": "sq-leetcode",
+ "label": "LeetCode: Stacks & Queues",
+ "questions": [
+  {
+   "id": "sq-lc-01",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "easy",
+   "question": "Valid Parentheses: which structure does the optimal O(n) solution rely on?",
+   "code": "",
+   "options": [
+    "A queue, matching brackets in first-in first-out order",
+    "A stack holding the still-unmatched opening brackets",
+    "A HashMap counting how many of each bracket occur",
+    "A PriorityQueue ordered by bracket character"
+   ],
+   "answer": 1,
+   "explanation": "Brackets must close in reverse order of opening, which is exactly LIFO; pure counting ignores order and would accept ([)]."
+  },
+  {
+   "id": "sq-lc-02",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "easy",
+   "question": "Number of Recent Calls: ping(t) counts pings in [t-3000, t]. Which structure is optimal?",
+   "code": "",
+   "options": [
+    "A max-heap of every timestamp received",
+    "A monotonic decreasing stack of timestamps",
+    "A HashSet of the timestamps in the window",
+    "A queue, polling any timestamp older than t-3000"
+   ],
+   "answer": 3,
+   "explanation": "Pings arrive in increasing time order, so the oldest is always the first to expire, which is exactly FIFO removal from the head of a queue."
+  },
+  {
+   "id": "sq-lc-03",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "easy",
+   "question": "Evaluate Reverse Polish Notation: why does this code pop into b before a?",
+   "code": "Deque<Integer> st = new ArrayDeque<>();\nint b = st.pop();\nint a = st.pop();\nst.push(a - b);",
+   "options": [
+    "The first pop returns the right operand, pushed most recently",
+    "ArrayDeque.pop() removes from the tail of the deque",
+    "Operands come back in the order they were pushed",
+    "Order is irrelevant because subtraction is commutative"
+   ],
+   "answer": 0,
+   "explanation": "A stack returns the most recent push first, and in RPN that token is the right operand, which matters for the non-commutative - and / operators."
+  },
+  {
+   "id": "sq-lc-04",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "easy",
+   "question": "Design Circular Queue: why keep a size counter (or one unused slot) besides head and tail?",
+   "code": "",
+   "options": [
+    "To make enQueue run in O(1) instead of O(n)",
+    "To let the queue grow past its fixed capacity",
+    "head == tail cannot otherwise tell full from empty",
+    "Because % capacity is too slow to run on every call"
+   ],
+   "answer": 2,
+   "explanation": "In a plain circular buffer the head and tail indices coincide both when the queue is empty and when it is full, so an extra size field disambiguates."
+  },
+  {
+   "id": "sq-lc-05",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "easy",
+   "question": "Task Scheduler simulated step by step: which pair of structures models greedy scheduling with cooldown?",
+   "code": "",
+   "options": [
+    "A min-heap of counts plus a HashSet of finished tasks",
+    "Two stacks, one for ready tasks and one for cooling",
+    "A stack of counts re-sorted after every time unit",
+    "A max-heap of counts plus a queue of cooling tasks"
+   ],
+   "answer": 3,
+   "explanation": "The heap always hands back the task with the most runs left, and the FIFO queue releases each cooling task back to the heap exactly n intervals later."
+  },
+  {
+   "id": "sq-lc-06",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "medium",
+   "question": "Valid Parentheses: what does this code do on the input \")\"?",
+   "code": "Deque<Character> st = new ArrayDeque<>();\nfor (char c : s.toCharArray()) {\n  if (c == '(') st.push(')');\n  else if (st.pop() != c) return false;\n}\nreturn st.isEmpty();",
+   "options": [
+    "Returns false, because the empty stack pops nothing",
+    "Throws NoSuchElementException from pop()",
+    "Throws NullPointerException while unboxing null",
+    "Returns true, since the stack ends up empty"
+   ],
+   "answer": 1,
+   "explanation": "ArrayDeque.pop() delegates to removeFirst(), which throws NoSuchElementException when empty; only peek() and poll() return null, so emptiness must be checked first."
+  },
+  {
+   "id": "sq-lc-07",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "medium",
+   "question": "Implement Queue using Stacks: what is the cost of pop() in this two-stack design?",
+   "code": "public int pop() {\n  if (out.isEmpty())\n    while (!in.isEmpty()) out.push(in.pop());\n  return out.pop();\n}",
+   "options": [
+    "O(n) worst case and O(n) on average",
+    "O(log n) amortized per operation",
+    "O(1) amortized, O(n) for a call that transfers",
+    "O(1) worst case, since each stack op is O(1)"
+   ],
+   "answer": 2,
+   "explanation": "Every element moves from in to out at most once, so n operations cost O(n) in total, even though the single pop that drains in is O(n)."
+  },
+  {
+   "id": "sq-lc-08",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "medium",
+   "question": "Implement Stack using Queues with a single queue: what does push(x) do right after offering x?",
+   "code": "",
+   "options": [
+    "Reverses the queue with Collections.reverse",
+    "Polls and re-offers the other size-1 elements",
+    "Sorts the queue so the newest element leads",
+    "Swaps x with the head using an index-based set"
+   ],
+   "answer": 1,
+   "explanation": "Rotating the older elements behind x leaves the newest at the head, so pop() and top() stay O(1) plain queue operations while push absorbs the O(n) cost."
+  },
+  {
+   "id": "sq-lc-09",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "medium",
+   "question": "Daily Temperatures: what must the monotonic stack store, and why?",
+   "code": "",
+   "options": [
+    "Temperatures, because the answer is a temperature gap",
+    "The running maximum temperature seen so far",
+    "Temperature-day pairs kept sorted in a PriorityQueue",
+    "Indices, so an answer is i minus the popped index"
+   ],
+   "answer": 3,
+   "explanation": "The output is a number of days, a distance between positions, so the stack must hold indices; values alone cannot recover how far apart two days are."
+  },
+  {
+   "id": "sq-lc-10",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "medium",
+   "question": "Next Greater Element II is circular. What is the standard way to handle the wrap-around?",
+   "code": "",
+   "options": [
+    "Loop i from 0 to 2n-1 and index with i % n",
+    "Sort the array first, then run one monotonic pass",
+    "Reverse the array and sweep the stack once",
+    "Append the array maximum as an extra last element"
+   ],
+   "answer": 0,
+   "explanation": "A second sweep over the same n values lets late elements see earlier ones, and anything still on the stack after 2n steps genuinely has no greater element."
+  },
+  {
+   "id": "sq-lc-11",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "medium",
+   "question": "Asteroid Collision: when does the current asteroid actually collide with the stack top?",
+   "code": "",
+   "options": [
+    "Whenever the two asteroids have different signs",
+    "Only when the top is negative and the current positive",
+    "Only when the top is positive and the current negative",
+    "Whenever the current one is larger in absolute value"
+   ],
+   "answer": 2,
+   "explanation": "A positive asteroid on the stack moves right and a later negative one moves left, so only that arrangement closes the gap; a negative top has already flown away."
+  },
+  {
+   "id": "sq-lc-12",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "medium",
+   "question": "Simplify Path: what should the code do when a token from the split is \"..\"?",
+   "code": "",
+   "options": [
+    "Push \"..\" so the final join can resolve it",
+    "Pop one directory, doing nothing if empty",
+    "Clear the whole stack back down to the root",
+    "Pop two directories, one per dot character"
+   ],
+   "answer": 1,
+   "explanation": "A \"..\" moves up exactly one level, and the root has no parent, so popping an empty stack must be a silent no-op rather than an error."
+  },
+  {
+   "id": "sq-lc-13",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "medium",
+   "question": "Decode String, e.g. 3[a2[c]]: what does the iterative solution push when it reads '['?",
+   "code": "",
+   "options": [
+    "Only the repeat count; the prefix is rebuilt later",
+    "The raw substring inside the brackets, unparsed",
+    "The index of the matching ']' found by pre-scanning",
+    "The repeat count and the string built so far"
+   ],
+   "answer": 3,
+   "explanation": "Two stacks are needed, one for multipliers and one for the prefix before the bracket, so ']' can pop both and append count copies of the decoded inner string."
+  },
+  {
+   "id": "sq-lc-14",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "medium",
+   "question": "Remove All Adjacent Duplicates In String: what is this StringBuilder-as-stack version's cost?",
+   "code": "StringBuilder sb = new StringBuilder();\nfor (char c : s.toCharArray()) {\n  int n = sb.length();\n  if (n > 0 && sb.charAt(n - 1) == c) sb.deleteCharAt(n - 1);\n  else sb.append(c);\n}\nreturn sb.toString();",
+   "options": [
+    "O(n^2), since deleteCharAt shifts the whole buffer",
+    "O(n log n), dominated by buffer growth",
+    "O(n), each char is appended once and removed at most once",
+    "O(n) only when the input has no adjacent duplicates"
+   ],
+   "answer": 2,
+   "explanation": "Deleting the final character shifts nothing, so both branches are O(1) and every character enters and leaves the buffer at most once."
+  },
+  {
+   "id": "sq-lc-15",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "medium",
+   "question": "Sliding Window Maximum: what invariant does the ArrayDeque maintain?",
+   "code": "",
+   "options": [
+    "Values sorted ascending, so the tail holds the maximum",
+    "Every value in the window, rescanned for the maximum",
+    "Indices whose values decrease from front to back",
+    "Indices ordered by value, with the minimum at the front"
+   ],
+   "answer": 2,
+   "explanation": "Holding indices in decreasing value order keeps the window maximum at the front, and storing positions lets expired indices be dropped in O(1) each."
+  },
+  {
+   "id": "sq-lc-16",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "hard",
+   "question": "Largest Rectangle in Histogram: why is the width i - st.peek() - 1 after the pop?",
+   "code": "while (!st.isEmpty() && h[i] < h[st.peek()]) {\n  int height = h[st.pop()];\n  int width = st.isEmpty() ? i : i - st.peek() - 1;\n  best = Math.max(best, height * width);\n}\nst.push(i);",
+   "options": [
+    "It counts the bars strictly between the shorter left and right bars",
+    "It subtracts one because the popped bar is excluded",
+    "It is an off-by-one guard for a sentinel zero bar",
+    "It converts a 1-based index into a 0-based index"
+   ],
+   "answer": 0,
+   "explanation": "After the pop, st.peek() is the nearest shorter bar on the left and i is the nearest shorter bar on the right, so the rectangle spans the open interval between them."
+  },
+  {
+   "id": "sq-lc-17",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "hard",
+   "question": "Trapping Rain Water with a monotonic decreasing stack: what does one pop compute?",
+   "code": "",
+   "options": [
+    "All the water sitting above that bar for the whole array",
+    "One horizontal slab bounded by the left and right taller bars",
+    "The vertical column of water resting on that single index",
+    "The prefix maximum height up to that index"
+   ],
+   "answer": 1,
+   "explanation": "The popped bar is the floor and its new neighbours are the walls, so the slab is min(left,right) minus the floor high and as wide as the gap; two pointers sum columns instead."
+  },
+  {
+   "id": "sq-lc-18",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "hard",
+   "question": "Sliding Window Maximum: what is wrong with the eviction test in this loop?",
+   "code": "for (int i = 0; i < n; i++) {\n  if (!dq.isEmpty() && dq.peekFirst() < i - k) dq.pollFirst();\n  while (!dq.isEmpty() && nums[dq.peekLast()] <= nums[i]) dq.pollLast();\n  dq.offerLast(i);\n  if (i >= k - 1) res[i - k + 1] = nums[dq.peekFirst()];\n}",
+   "options": [
+    "pollFirst should be pollLast, since a deque is FIFO",
+    "It must be <=, index i - k is already out of the window",
+    "The if must be a while, many indices can expire at once",
+    "offerLast must run before the trimming while loop"
+   ],
+   "answer": 1,
+   "explanation": "The window is [i-k+1, i], so index i-k is stale; with a strict < it survives an extra step and can be reported as the maximum. Only one index can expire per step."
+  },
+  {
+   "id": "sq-lc-19",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "hard",
+   "question": "Basic Calculator with + - and parentheses: what goes on the stack when '(' is read?",
+   "code": "",
+   "options": [
+    "The characters inside the group, to be parsed later",
+    "The index of the matching ')' from a pre-scan",
+    "Only the sign, since the total can be recomputed",
+    "The result so far and the sign in front of the group"
+   ],
+   "answer": 3,
+   "explanation": "Evaluation restarts inside the parentheses, so the outer partial sum and the sign multiplying the group must both be saved and restored when ')' arrives."
+  },
+  {
+   "id": "sq-lc-20",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "hard",
+   "question": "Remove K Digits: which monotonic invariant makes this greedy loop yield the smallest number?",
+   "code": "for (char d : num.toCharArray()) {\n  while (k > 0 && !st.isEmpty() && st.peek() > d) {\n    st.pop();\n    k--;\n  }\n  st.push(d);\n}",
+   "options": [
+    "Keep digits non-decreasing: drop a digit bigger than the next",
+    "Keep digits non-increasing: drop a digit smaller than the next",
+    "Any order works as long as exactly k digits are removed",
+    "Delete the k largest digits, wherever they sit"
+   ],
+   "answer": 0,
+   "explanation": "Removing a digit that exceeds its successor lowers the most significant differing place, so the surviving prefix is non-decreasing and minimal."
+  },
+  {
+   "id": "sq-lc-21",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "hard",
+   "question": "Online Stock Span: what does the stack hold so that next(price) is amortized O(1)?",
+   "code": "",
+   "options": [
+    "Every past price, rescanned backwards on each call",
+    "Only the maximum price so far plus a counter",
+    "Price-span pairs, whose spans merge when popped",
+    "A max-heap of prices popped while below today's"
+   ],
+   "answer": 2,
+   "explanation": "Popping a smaller price folds its already computed span into today's span, so each price is pushed and popped at most once across all calls."
+  },
+  {
+   "id": "sq-lc-22",
+   "topic": "LeetCode: Stacks & Queues",
+   "difficulty": "hard",
+   "question": "Min Stack: which call sequence makes this pair of stacks report a wrong getMin()?",
+   "code": "void push(int x) {\n  s.push(x);\n  if (mins.isEmpty() || x < mins.peek()) mins.push(x);\n}\nint pop() {\n  int v = s.pop();\n  if (v == mins.peek()) mins.pop();\n  return v;\n}",
+   "options": [
+    "push(2), push(2), pop(), getMin()",
+    "push(1), push(2), pop(), getMin()",
+    "push(-1), push(0), getMin()",
+    "push(3), pop(), push(3), getMin()"
+   ],
+   "answer": 0,
+   "explanation": "Strict < skips the duplicate minimum, then the equality check pops its only copy, so getMin() breaks while a 2 is still on the main stack; use <= on push."
+  }
+ ]
+}
