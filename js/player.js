@@ -8,11 +8,17 @@ import { $ } from './ui.js';
 import { joinGame } from './net.js';
 import { sound } from './sound.js';
 import { burst, stop as stopConfetti } from './confetti.js';
+import {
+  registerPack, renderPicker, avatarHTML, charOf,
+  recallChar, rememberChar, DEFAULT_PACK,
+} from './avatars.js';
 
 export async function playerGame(pin, nick, onExit) {
   UI.setRole('player');
 
   const conn = await joinGame(pin, nick, {
+    // Only a request: the host decides, and says so in its welcome.
+    char: recallChar(''),
     onMessage: (msg) => handle(msg),
     onClose: (reason) => {
       UI.toast(reason || 'Disconnected', 5000);
@@ -22,9 +28,57 @@ export async function playerGame(pin, nick, onExit) {
     onStatus: (s) => { if (s === 'reconnecting') UI.toast('Reconnecting…'); },
   });
 
+  /* ── which character am I? ── */
+
+  // A host running a newer build may send a pack this copy of the app has
+  // never seen, so adopt whatever definition arrives before rendering it.
+  const packKey = (registerPack(conn.pack) || { key: DEFAULT_PACK }).key;
+  let myChar = conn.char || '';
+  let letPick = conn.letPick;
+  let taken = [];
+  let wanted = '';
+  let note = '';
+
+  UI.setPack(packKey);
+  UI.setMotion(conn.anims);
   $('#waitNick').textContent = conn.name;
+  paintMe();
+  paintPicker();
+
+  // Same character as last lesson, if it is still going spare.
+  const remembered = recallChar(packKey);
+  if (letPick && remembered && remembered !== myChar) askFor(remembered);
+
   UI.show('waiting');
   sound.join();
+
+  function paintMe() {
+    $('#waitAvatar').innerHTML = avatarHTML(packKey, myChar, { size: 'xl', delay: 0 });
+  }
+
+  /**
+   * `next` undefined leaves the note alone — the host's roster updates
+   * arrive right behind its reply, and they must not wipe out a "someone
+   * got there first" message the player has not read yet.
+   */
+  function paintPicker(next) {
+    if (next !== undefined) note = next;
+    const card = $('#charCard');
+    card.hidden = !letPick;
+    if (!letPick) return;
+    renderPicker($('#charGrid'), packKey, {
+      selected: myChar,
+      taken,
+      onPick: (id) => { if (id !== myChar) { sound.select(); askFor(id); } },
+    });
+    $('#charNote').textContent = note ||
+      `You are the ${charOf(packKey, myChar).name}. Faded ones are taken.`;
+  }
+
+  function askFor(id) {
+    wanted = id;
+    conn.send({ t: 'char', id });
+  }
 
   let q = null;
   let shownAt = 0;
@@ -42,6 +96,27 @@ export async function playerGame(pin, nick, onExit) {
     switch (msg.t) {
       case 'start':
         total = msg.total;
+        letPick = false;                            // the cast is set once we begin
+        $('#charCard').hidden = true;
+        break;
+
+      case 'char': {
+        // The host has the final say — a character someone else grabbed
+        // first comes back as whatever it gave us instead.
+        const asked = wanted;
+        wanted = '';
+        myChar = msg.id || myChar;
+        rememberChar(packKey, myChar);
+        paintMe();
+        paintPicker(asked && msg.id !== asked
+          ? `${charOf(packKey, asked).name} was taken — you are the ${charOf(packKey, myChar).name}.`
+          : '');
+        break;
+      }
+
+      case 'taken':
+        taken = Array.isArray(msg.ids) ? msg.ids : [];
+        paintPicker();
         break;
 
       case 'question': {
@@ -100,6 +175,7 @@ export async function playerGame(pin, nick, onExit) {
             correctText: msg.correctText,
             explanation: msg.explanation,
             showExplain: !!msg.explanation,
+            char: myChar,
           });
         }, 900);
         break;

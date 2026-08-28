@@ -420,13 +420,16 @@ body.muted .sound-toggle .off { display: inline; }
   align-content: flex-start;
 }
 .pchip {
+  display: flex; align-items: center; gap: 9px;
   background: var(--white); color: var(--ink);
-  padding: 10px 16px; border-radius: var(--r);
+  padding: 8px 15px; border-radius: var(--r);
   font-weight: 900; font-size: 17px;
   box-shadow: 0 3px 0 rgba(0,0,0,.18);
   animation: pop .34s cubic-bezier(.2,1.4,.5,1) both;
-  max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  cursor: pointer;
+  max-width: 220px;
 }
+.pchip .pname { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pchip.leaving { animation: shrink .22s ease forwards; }
 @keyframes pop { from { transform: scale(.3) translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes shrink { to { transform: scale(.2); opacity: 0; } }
@@ -682,6 +685,7 @@ body.muted .sound-toggle .off { display: inline; }
 .podium {
   display: grid; grid-template-columns: 1fr 1.15fr 1fr;
   gap: 8px; align-items: end; min-height: 230px;
+  padding-top: 22px;
 }
 .podium.solo {
   grid-template-columns: minmax(0, 240px);
@@ -751,6 +755,198 @@ body.muted .sound-toggle .off { display: inline; }
   text-transform: uppercase; letter-spacing: .6px;
 }
 
+/* ─────────── characters ───────────
+   Every player is an animal — or a robot, or a wizard — from the pack
+   the teacher picked on the setup screen. A character is one emoji plus
+   the name of a motion loop, so a whole pack costs no image files and
+   no extra requests.
+
+   Order matters below. The mood rules come after the motion loops on
+   purpose: same specificity, so a cheer or a sulk wins over the idle
+   loop while the class is on.                                          */
+
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  width: 1.3em; height: 1.3em;
+  line-height: 1;
+  flex: none;
+  user-select: none;
+}
+.avatar .face {
+  display: block;
+  transform-origin: 50% 92%;
+  filter: drop-shadow(0 2px 0 rgba(0,0,0,.18));
+}
+.av-xs { font-size: 17px; }
+.av-sm { font-size: 26px; }
+.av-md { font-size: 34px; }
+.av-lg { font-size: 50px; }
+.av-xl { font-size: clamp(56px, 15vw, 88px); }
+
+/* Motion loops. A character's `anim` field names one of these; the list
+   is mirrored in ANIMS in js/avatars.js. --d staggers a crowd so thirty
+   rabbits do not jump in lockstep. */
+.avatar.anim-jump   .face { animation: avJump   1.6s var(--d,0s) cubic-bezier(.3,.7,.4,1) infinite; }
+.avatar.anim-hop    .face { animation: avHop    1.3s var(--d,0s) ease-in-out infinite; }
+.avatar.anim-bounce .face { animation: avBounce 1.1s var(--d,0s) ease-in-out infinite; }
+.avatar.anim-waddle .face { animation: avWaddle 1.0s var(--d,0s) ease-in-out infinite; }
+.avatar.anim-float  .face { animation: avFloat  2.6s var(--d,0s) ease-in-out infinite; }
+.avatar.anim-wiggle .face { animation: avWiggle 1.8s var(--d,0s) ease-in-out infinite; }
+.avatar.anim-spin   .face { animation: avSpin   2.8s var(--d,0s) ease-in-out infinite; }
+.avatar.anim-zoom   .face { animation: avZoom   1.9s var(--d,0s) ease-in-out infinite; }
+.avatar.anim-sway   .face { animation: avSway   2.2s var(--d,0s) ease-in-out infinite; }
+.avatar.anim-stomp  .face { animation: avStomp  1.5s var(--d,0s) ease-in-out infinite; }
+
+@keyframes avJump {
+  0%, 60%, 100% { transform: translateY(0) scale(1); }
+  66%  { transform: translateY(4%)   scaleY(.84) scaleX(1.12); }
+  80%  { transform: translateY(-52%) scaleY(1.12) scaleX(.92); }
+  92%  { transform: translateY(0)    scaleY(.92) scaleX(1.06); }
+}
+@keyframes avHop {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25%      { transform: translateY(-26%) rotate(-7deg); }
+  50%      { transform: translateY(0) rotate(0deg); }
+  75%      { transform: translateY(-14%) rotate(7deg); }
+}
+@keyframes avBounce {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  45%      { transform: translateY(-22%) scaleY(1.06); }
+  72%      { transform: translateY(0) scaleY(.9) scaleX(1.06); }
+}
+@keyframes avWaddle {
+  0%, 100% { transform: rotate(-9deg) translateX(-7%); }
+  50%      { transform: rotate(9deg)  translateX(7%); }
+}
+@keyframes avFloat {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50%      { transform: translateY(-18%) rotate(3deg); }
+}
+@keyframes avWiggle {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  18%      { transform: rotate(-12deg) scale(1.05); }
+  38%      { transform: rotate(9deg); }
+  58%      { transform: rotate(-6deg); }
+  76%      { transform: rotate(4deg); }
+}
+@keyframes avSpin {
+  0%, 45%  { transform: rotate(0deg); }
+  100%     { transform: rotate(360deg); }
+}
+@keyframes avZoom {
+  0%, 100% { transform: translateX(0) rotate(0deg); }
+  22%      { transform: translateX(-15%) rotate(-9deg); }
+  58%      { transform: translateX(15%) rotate(9deg) scale(1.06); }
+  82%      { transform: translateX(0) rotate(0deg); }
+}
+@keyframes avSway {
+  0%, 100% { transform: rotate(-6deg) translateY(0); }
+  50%      { transform: rotate(6deg) translateY(-7%); }
+}
+@keyframes avStomp {
+  0%, 100% { transform: translateY(0) scaleY(1); }
+  28%      { transform: translateY(-17%) scaleY(1.05); }
+  42%      { transform: translateY(0) scaleY(.82) scaleX(1.14); }
+  58%      { transform: translateY(0) scaleY(1); }
+}
+
+/* moods — must stay below the loops above */
+.avatar.is-still .face { animation: none; }
+.avatar.is-poked .face { animation: avPop   .5s cubic-bezier(.2,1.5,.4,1) 1; }
+.avatar.is-happy .face { animation: avCheer .62s cubic-bezier(.25,1.4,.4,1) 4 both; }
+.avatar.is-sad   .face {
+  animation: avSulk 1.1s ease both;
+  /* Muted, not bleached — a heavily desaturated emoji all but vanishes
+     against the purple backdrop. */
+  filter: grayscale(.45) drop-shadow(0 2px 0 rgba(0,0,0,.16));
+  opacity: .88;
+}
+
+@keyframes avPop {
+  0%   { transform: scale(1); }
+  40%  { transform: translateY(-34%) scale(1.18); }
+  100% { transform: scale(1); }
+}
+@keyframes avCheer {
+  0%   { transform: translateY(0) scale(1) rotate(0deg); }
+  35%  { transform: translateY(-46%) scale(1.13) rotate(-8deg); }
+  70%  { transform: translateY(0) scale(.95) rotate(5deg); }
+  100% { transform: translateY(0) scale(1) rotate(0deg); }
+}
+@keyframes avSulk {
+  0%   { transform: translateY(-14%) scale(1) rotate(0deg); }
+  60%  { transform: translateY(10%) scale(.9) rotate(-10deg); }
+  100% { transform: translateY(8%) scale(.88) rotate(-10deg); }
+}
+
+/* The teacher's "character animations" switch, and nothing else, sets this. */
+body.no-motion .avatar .face { animation: none !important; }
+
+/* pack picker (teacher) — a .chip with a preview strip glued underneath */
+.pack-grid { display: grid; gap: 8px; }
+.pack-card { align-items: flex-start; }
+.pack-card .tick { margin-top: 2px; }
+.pack-body { flex: 1; min-width: 0; }
+.pack-name { display: block; font-size: 15px; font-weight: 900; }
+.pack-blurb { display: block; font-size: 12px; font-weight: 700; color: #8a8a8a; margin-top: 2px; }
+.pack-peek { display: flex; gap: 4px; margin-top: 8px; flex-wrap: wrap; }
+
+/* character picker (a player's phone, and solo practice) */
+.char-card { display: flex; flex-direction: column; gap: 10px; max-width: 480px; }
+.char-h { margin: 0; font-size: 17px; font-weight: 900; color: var(--ink); text-align: center; }
+.char-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(74px, 1fr));
+  gap: 8px;
+  max-height: 258px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 2px;
+}
+.char-pick {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  border: 3px solid #e9e9e9; background: var(--white); color: var(--ink);
+  border-radius: var(--r); padding: 9px 4px; cursor: pointer;
+  transition: border-color .12s, background .12s;
+}
+.char-pick:hover:not(:disabled) { border-color: #c9c9c9; }
+.char-pick.is-on { border-color: var(--purple); background: #f4efff; }
+.char-pick:disabled { opacity: .32; cursor: not-allowed; }
+.char-name {
+  font-size: 10px; font-weight: 800; line-height: 1.2; text-align: center;
+  letter-spacing: .3px; text-transform: uppercase; color: #7a7a7a;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.char-pick.is-on .char-name { color: var(--purple); }
+.char-note { margin: 0; min-height: 16px; font-size: 12px; font-weight: 700; color: #9a9a9a; text-align: center; }
+
+/* a row of players as avatars — lobby, live answers, reveal */
+.avatar-strip {
+  display: flex; flex-wrap: wrap; gap: 8px 12px;
+  justify-content: center; align-items: flex-end;
+}
+.avatar-strip:empty { display: none; }
+.strip-item {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  width: 62px; transition: opacity .25s ease;
+}
+.strip-item.is-dim { opacity: .34; }
+.avatar-strip.is-compact { gap: 6px 8px; }
+.avatar-strip.is-compact .strip-item { width: auto; }
+.strip-name {
+  font-size: 10px; font-weight: 800; opacity: .85;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* where avatars sit inside existing furniture */
+.avatar-hero { display: grid; place-items: center; min-height: 96px; }
+.verdict-avatar { display: grid; place-items: center; min-height: 74px; }
+.verdict-avatar:empty { display: none; min-height: 0; }
+.board-list li .avatar { margin: -4px 0; }
+.pod .avatar { margin-bottom: -4px; }
+.podium.solo .pod .avatar { margin-bottom: 2px; }
+
 /* ─────────── toast ─────────── */
 .toast {
   position: fixed;
@@ -773,6 +969,8 @@ body[data-role="player"] .host-only,
 body[data-role="solo"]   .host-only   { display: none !important; }
 body[data-role="host"]   .player-only { display: none !important; }
 body[data-role="player"] .driver-only { display: none !important; }
+body[data-role="host"]   .solo-only,
+body[data-role="player"] .solo-only   { display: none !important; }
 
 /* Host screen shows answer text but is not clickable */
 body[data-role="host"][data-screen="question"] .ans { cursor: default; }
