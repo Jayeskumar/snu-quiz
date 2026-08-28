@@ -8,11 +8,18 @@ import { $ } from './ui.js';
 import { buildQuiz, scoreAnswer } from './engine.js';
 import { sound } from './sound.js';
 import { burst, stop as stopConfetti } from './confetti.js';
+import { pickFree } from './avatars.js';
 
 const BEST_KEY = 'snuq.best';
 
 export function soloGame(config, onExit) {
   UI.setRole('solo');
+  UI.setPack(config.pack);
+  UI.setMotion(config.anims !== false);
+
+  // Practising alone still gets you a character — the same one you play as
+  // in a live game, unless nothing was ever chosen.
+  const myChar = config.char || pickFree(config.pack, []);
 
   const quiz = buildQuiz(config);
   if (!quiz.length) {
@@ -102,6 +109,7 @@ export function soloGame(config, onExit) {
         correctText: q.options[q.answer],
         explanation: q.explanation,
         showExplain: config.explain,
+        char: myChar,
       });
       const btn = $('#btnNext');
       btn.hidden = false;
@@ -127,7 +135,7 @@ export function soloGame(config, onExit) {
 
     sound.fanfare();
     UI.renderPodium(
-      [{ id: 'you', name: 'You', score, rank: 1 }],
+      [{ id: 'you', name: 'You', char: myChar, score, rank: 1 }],
       'you',
       `${correctCount}/${quiz.length} correct (${pct}%) · best streak ${bestStreak}` +
         (isBest ? ' · new personal best!' : best ? ` · personal best ${best}` : '') +

@@ -9,12 +9,17 @@ import { startHost } from './net.js';
 import { buildQuiz, scoreAnswer, rankPlayers } from './engine.js';
 import { sound } from './sound.js';
 import { burst, stop as stopConfetti } from './confetti.js';
+import {
+  avatarHTML, packPayload, pickFree, renderStrip, stripItem, setMood, poke,
+} from './avatars.js';
 
 const REVEAL_PAUSE = 4200;
 const BOARD_PAUSE = 4200;
 
 export async function hostGame(config, onExit) {
   UI.setRole('host');
+  UI.setPack(config.pack);
+  UI.setMotion(config.anims !== false);
   UI.show('lobby');
   $('#lobbyPin').textContent = '······';
   $('#lobbyHint').textContent = 'Opening a peer-to-peer channel…';
@@ -22,12 +27,29 @@ export async function hostGame(config, onExit) {
   $('#playerChips').innerHTML = '';
   $('#playerCount').textContent = '0';
   $('#qrBox').innerHTML = '';
+  $('#answerAvatars').innerHTML = '';
+  $('#revealAvatars').innerHTML = '';
 
   let net;
   try {
     net = await startHost({
-      onJoin: (p) => { addChip(p); sound.join(); refreshLobby(); },
-      onLeave: (p) => { removeChip(p); sound.leave(); refreshLobby(); },
+      // The host owns the cast list: it hands every player a free character
+      // and settles it when two phones reach for the same one.
+      resolveChar: (p, wanted) => pickFree(
+        config.pack,
+        net ? net.takenChars(p.id) : [],
+        config.letPick === false ? '' : wanted
+      ),
+      // Sent with the welcome, so a player renders the pack the teacher
+      // chose even if their copy of the app has never heard of it.
+      greeting: () => ({
+        pack: packPayload(config.pack),
+        letPick: config.letPick !== false,
+        anims: config.anims !== false,
+      }),
+      onChar: (p) => { updateChip(p); announceTaken(); },
+      onJoin: (p) => { addChip(p); announceTaken(); sound.join(); refreshLobby(); },
+      onLeave: (p) => { removeChip(p); announceTaken(); sound.leave(); refreshLobby(); },
       onAnswer: (p, msg) => handleAnswer(p, msg),
       onStatus: (s) => {
         if (s === 'reconnecting') UI.toast('Reconnecting to the matchmaking service…');
@@ -59,20 +81,56 @@ export async function hostGame(config, onExit) {
   }
   refreshLobby();
 
+  function chipOf(pid) { return $(`.pchip[data-pid="${CSS.escape(pid)}"]`); }
+
+  function paintChip(el, p) {
+    el.innerHTML = avatarHTML(config.pack, p.char, { size: 'sm', label: p.name });
+    const name = document.createElement('span');
+    name.className = 'pname';
+    name.textContent = p.name;
+    el.appendChild(name);
+  }
+
   function addChip(p) {
     const el = document.createElement('div');
     el.className = 'pchip';
     el.dataset.pid = p.id;
-    el.textContent = p.name;
+    paintChip(el, p);
     el.title = 'Click to remove ' + p.name;
     el.onclick = () => { if (confirm(`Remove ${p.name} from the game?`)) net.kick(p.id, 'Removed by the host'); };
     $('#playerChips').appendChild(el);
   }
+  function updateChip(p) {
+    const el = chipOf(p.id);
+    if (el) paintChip(el, p);
+  }
   function removeChip(p) {
-    const el = $(`.pchip[data-pid="${CSS.escape(p.id)}"]`);
+    const el = chipOf(p.id);
     if (!el) return;
     el.classList.add('leaving');
     setTimeout(() => el.remove(), 220);
+  }
+
+  /** Keep every open character picker honest about what is still free. */
+  function announceTaken() {
+    if (!net) return;
+    net.broadcast({ t: 'taken', ids: net.takenChars() });
+  }
+
+  /**
+   * The class as a row of characters. During a question they wake up one
+   * by one as answers land; on the reveal they cheer or slump.
+   */
+  function paintStrip(box, moodOf, size) {
+    const rows = net.players.map((p) => {
+      const mood = moodOf(p);
+      return { id: p.id, name: p.name, char: p.char, mood, dim: mood === 'still' };
+    });
+    // A big class trades names, then size, for staying on the screen.
+    renderStrip(box, config.pack, rows, {
+      size: rows.length > 24 ? 'sm' : size,
+      names: rows.length <= 18,
+    });
   }
 
   function renderQr(url) {
@@ -139,6 +197,7 @@ export async function hostGame(config, onExit) {
 
     UI.renderQuestion(q, { role: 'host', index: i, total: quiz.length, interactive: false });
     UI.setAnsweredCount(0);
+    paintStrip($('#answerAvatars'), () => 'still', 'md');
 
     timer = UI.startTimer(q.time, { onEnd: () => lock('time') });
     sound.startTicks(() => timer.remaining());
@@ -174,6 +233,16 @@ export async function hostGame(config, onExit) {
 
     net.send(p.id, { t: 'ack', n: idx });
     UI.setAnsweredCount(round.answers.size);
+
+    // A jump, not a verdict — showing right from wrong here would give the
+    // answer away to anyone watching the projector.
+    const item = stripItem($('#answerAvatars'), p.id);
+    if (item) {
+      item.classList.remove('is-dim');
+      const av = item.querySelector('.avatar');
+      setMood(av, 'idle');
+      poke(av);
+    }
 
     if (round.answers.size >= net.players.length && net.players.length > 0) {
       setTimeout(() => { if (phase === 'asking') lock('all'); }, 350);
@@ -216,6 +285,10 @@ export async function hostGame(config, onExit) {
 
     setTimeout(() => {
       if (phase !== 'revealed') return;
+      paintStrip($('#revealAvatars'), (p) => {
+        const a = round.answers.get(p.id);
+        return a && a.correct ? 'happy' : 'sad';
+      }, 'md');
       UI.renderReveal({
         isHost: true,
         gotIt: true,
@@ -245,7 +318,7 @@ export async function hostGame(config, onExit) {
       const me = ranked.find((r) => r.id === p.id);
       return {
         t: 'board',
-        rows: ranked.slice(0, 8).map((r) => ({ id: r.id, name: r.name, score: r.score, rank: r.rank, delta: r.delta })),
+        rows: ranked.slice(0, 8).map((r) => ({ id: r.id, name: r.name, char: r.char, score: r.score, rank: r.rank, delta: r.delta })),
         you: me ? { rank: me.rank, score: me.score, delta: me.delta, of: ranked.length } : null,
         last,
       };
@@ -274,7 +347,7 @@ export async function hostGame(config, onExit) {
       const me = ranked.find((r) => r.id === p.id);
       return {
         t: 'over',
-        rows: ranked.slice(0, 5).map((r) => ({ id: r.id, name: r.name, score: r.score, rank: r.rank })),
+        rows: ranked.slice(0, 5).map((r) => ({ id: r.id, name: r.name, char: r.char, score: r.score, rank: r.rank })),
         you: me ? { rank: me.rank, score: me.score, correct: me.correct, total: quiz.length, best: me.bestStreak } : null,
       };
     });
@@ -318,6 +391,8 @@ export async function hostGame(config, onExit) {
       clearTimeout(autoTimer);
       UI.cancelReady();
       UI.stopTimer();
+      $('#answerAvatars').innerHTML = '';
+      $('#revealAvatars').innerHTML = '';
       stopConfetti();
       sound.stopLobby();
       sound.stopTicks();

@@ -8,6 +8,10 @@ import {
   loadIndex, loadBanks, banks, bankMeta, isEncrypted, isUnlocked,
   countFor, allQuestions, DIFF_LABEL,
 } from './engine.js';
+import {
+  packs, packChars, avatarHTML, renderPicker, pickFree,
+  recallChar, rememberChar, cleanCharId, DEFAULT_PACK,
+} from './avatars.js';
 import { BadPassphrase } from './lock.js';
 import { cleanName } from './net.js';
 import { sound } from './sound.js';
@@ -33,6 +37,10 @@ const config = {
   explain: true,
   autoNext: false,
   projector: false,
+  pack: DEFAULT_PACK,     // which character template everyone plays from
+  letPick: true,          // players may swap to any free character
+  anims: true,            // character animations
+  char: '',               // the solo practiser's own character
 };
 
 /* ══════════════════ boot ══════════════════ */
@@ -55,6 +63,7 @@ const config = {
 
   restoreConfig();
   buildTopics();
+  buildPacks();
   wire();
   route();
 })();
@@ -80,6 +89,18 @@ function restoreConfig() {
     config.topics = config.topics.filter((t) => keys.includes(t));
   }
   if (!config.topics.length) config.topics = keys.slice();
+
+  // A saved pack that no longer exists (or never did) falls back to the
+  // first one rather than leaving the picker with nothing selected.
+  if (!packs().some((p) => p.key === config.pack)) config.pack = DEFAULT_PACK;
+  config.char = validChar(config.pack, config.char || recallChar(config.pack));
+  UI.setMotion(config.anims !== false);
+}
+
+/** A character id that definitely exists in the given pack. */
+function validChar(packKey, want) {
+  const id = cleanCharId(want);
+  return packChars(packKey).some((c) => c.id === id) ? id : pickFree(packKey, []);
 }
 
 function saveConfig() {
@@ -111,6 +132,56 @@ function buildTopics() {
   });
 }
 
+/**
+ * One card per character pack. The list comes straight from avatars.js,
+ * so a new pack added there turns up here on its own.
+ */
+function buildPacks() {
+  $('#packList').innerHTML = packs().map((p) => `
+    <button class="chip pack-card ${p.key === config.pack ? 'is-on' : ''}" data-pack="${esc(p.key)}"
+            aria-pressed="${p.key === config.pack}">
+      <span class="tick">&#10003;</span>
+      <span class="pack-body">
+        <span class="pack-name">${esc(p.icon)} ${esc(p.label)}</span>
+        <span class="pack-blurb">${esc(p.blurb)} &middot; ${p.characters.length} characters</span>
+        <span class="pack-peek">
+          ${p.characters.slice(0, 7).map((c, i) =>
+            avatarHTML(p.key, c.id, { size: 'sm', delay: i * 140 })).join('')}
+        </span>
+      </span>
+    </button>`).join('');
+
+  $$('#packList .pack-card').forEach((el) => {
+    el.onclick = () => {
+      if (el.dataset.pack === config.pack) return;
+      config.pack = el.dataset.pack;
+      config.char = validChar(config.pack, recallChar(config.pack));
+      $$('#packList .pack-card').forEach((c) => {
+        const on = c.dataset.pack === config.pack;
+        c.classList.toggle('is-on', on);
+        c.setAttribute('aria-pressed', String(on));
+      });
+      sound.click();
+      syncSetup();
+    };
+  });
+}
+
+/** Solo practice has nobody to negotiate with, so it picks straight away. */
+function buildSoloChars() {
+  renderPicker($('#soloCharGrid'), config.pack, {
+    selected: config.char,
+    taken: [],
+    onPick: (id) => {
+      config.char = id;
+      rememberChar(config.pack, id);
+      sound.select();
+      buildSoloChars();
+      saveConfig();
+    },
+  });
+}
+
 function syncSetup() {
   const pool = countFor(config.topics, config.difficulty);
   const slider = $('#qCount');
@@ -130,6 +201,9 @@ function syncSetup() {
   $('#optExplain').checked = config.explain;
   $('#optAutoNext').checked = config.autoNext;
   $('#optProjector').checked = config.projector;
+  $('#optAnims').checked = config.anims;
+  $('#optLetPick').checked = config.letPick;
+  buildSoloChars();
 
   $('#btnStartGame').disabled = pool === 0;
   $('#btnStartGame').textContent = mode === 'solo'
@@ -143,6 +217,8 @@ function openSetup(which) {
   mode = which;
   document.body.dataset.role = which === 'solo' ? 'solo' : 'host';
   $('#setupTitle').textContent = which === 'solo' ? 'Solo practice' : 'Host a live game';
+  // A game just played as somebody else's guest may have left motion off.
+  UI.setMotion(config.anims !== false);
   syncSetup();
   UI.show('setup');
 }
@@ -294,6 +370,12 @@ function wire() {
   bindSwitch('#optExplain', 'explain');
   bindSwitch('#optAutoNext', 'autoNext');
   bindSwitch('#optProjector', 'projector');
+  bindSwitch('#optLetPick', 'letPick');
+  $('#optAnims').onchange = (e) => {
+    config.anims = e.target.checked;
+    UI.setMotion(config.anims);            // the pack cards preview it live
+    saveConfig();
+  };
 
   $('#btnStartGame').onclick = async () => {
     endGame();

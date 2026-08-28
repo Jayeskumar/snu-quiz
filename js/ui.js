@@ -3,6 +3,7 @@
    ============================================================ */
 
 import { DIFF_LABEL } from './engine.js';
+import { avatarHTML, DEFAULT_PACK } from './avatars.js';
 
 export const $  = (sel, root = document) => root.querySelector(sel);
 export const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
@@ -33,6 +34,19 @@ export function show(name) {
 export function currentScreen() { return current; }
 
 export function setRole(role) { document.body.dataset.role = role; }
+
+/* ─────────── characters ───────────
+   Scoreboards and podiums are rendered from plain rows, so rather than
+   thread the pack through every call site the current one is parked here.
+   Host, player and solo each set it when their game starts.               */
+
+let pack = DEFAULT_PACK;
+
+export function setPack(key) { pack = key || DEFAULT_PACK; }
+export function currentPack() { return pack; }
+
+/** The teacher's "character animations" switch. */
+export function setMotion(on) { document.body.classList.toggle('no-motion', !on); }
 
 /* ─────────── toast ─────────── */
 
@@ -191,10 +205,16 @@ export function stopTimer() {
 
 export function renderReveal({
   correct, gotIt, answered, points, streak, rankText, counts, correctIdx,
-  explanation, correctText, showExplain, isHost,
+  explanation, correctText, showExplain, isHost, char,
 }) {
   const v = $('#verdict');
   v.classList.toggle('is-bad', !gotIt);
+
+  // The host screen carries the whole class in its own strip, so only a
+  // player (or a solo practiser) gets a character on the verdict.
+  $('#verdictAvatar').innerHTML = !isHost && char
+    ? avatarHTML(pack, char, { size: 'xl', mood: gotIt ? 'happy' : 'sad', delay: 0 })
+    : '';
 
   if (isHost) {
     $('#verdictIcon').textContent = '✓';
@@ -251,6 +271,7 @@ export function renderScoreboard(rows, youId, note) {
   list.innerHTML = rows.slice(0, 8).map((p, i) => `
     <li class="${p.id === youId ? 'is-you' : ''}" style="animation-delay:${i * 55}ms">
       <span class="rk">${p.rank}</span>
+      ${avatarHTML(pack, p.char, { size: 'sm', delay: i * 120, label: p.name })}
       <span class="nm">${esc(p.name)}</span>
       ${p.delta > 0 ? `<span class="dl">+${p.delta}</span>` : ''}
       <span class="sc">${p.score}</span>
@@ -272,6 +293,7 @@ export function renderPodium(rows, youId, note) {
     const p = rows[0];
     board.innerHTML = p
       ? `<div class="pod pod-1">
+           ${avatarHTML(pack, p.char, { size: 'lg', mood: 'happy', delay: 0, label: p.name })}
            <span class="who">${esc(p.name)}</span>
            <span class="pts">${p.score}</span>
            <div class="col">&#127942;</div>
@@ -292,6 +314,7 @@ export function renderPodium(rows, youId, note) {
   board.innerHTML = order.map((p, i) => {
     if (!p) return '<div></div>';
     return `<div class="pod pod-${place[i]}">
+      ${avatarHTML(pack, p.char, { size: 'lg', mood: 'happy', delay: i * 220, label: p.name })}
       <span class="who">${esc(p.name)}</span>
       <span class="pts">${p.score}</span>
       <div class="col">${place[i]}</div>
@@ -302,6 +325,7 @@ export function renderPodium(rows, youId, note) {
   $('#restList').innerHTML = rest.map((p) => `
     <li class="${p.id === youId ? 'is-you' : ''}">
       <span class="rk">${p.rank}</span>
+      ${avatarHTML(pack, p.char, { size: 'xs', label: p.name })}
       <span class="nm">${esc(p.name)}</span>
       <span class="sc">${p.score}</span>
     </li>`).join('');

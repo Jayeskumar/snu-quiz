@@ -44,6 +44,11 @@ export function cleanName(raw) {
     .slice(0, 14);
 }
 
+/** Character ids travel over the wire, so keep them to a boring alphabet. */
+function cleanCharId(raw) {
+  return String(raw || '').toLowerCase().replace(/[^a-z0-9_-]/g, '').slice(0, 24);
+}
+
 function isPeerAvailable() {
   return typeof window.Peer === 'function';
 }
@@ -53,7 +58,16 @@ function isPeerAvailable() {
 /**
  * Start hosting. Resolves with a handle once the broker assigns our PIN.
  *
- * handlers: { onJoin(player), onLeave(player), onAnswer(player, msg), onStatus(text) }
+ * handlers: {
+ *   onJoin(player), onLeave(player), onAnswer(player, msg), onStatus(text),
+ *   onChar(player),                  // a player swapped character
+ *   resolveChar(player, wantedId),   // returns the id the player actually gets
+ *   greeting(),                      // extra fields folded into `welcome`
+ * }
+ *
+ * Characters are opaque here: net.js only ferries ids around and lets the
+ * host settle who gets what, so the transport never has to know a rabbit
+ * from a robot.
  */
 export function startHost(handlers = {}) {
   return new Promise((resolve, reject) => {
@@ -62,7 +76,7 @@ export function startHost(handlers = {}) {
       return;
     }
 
-    const players = new Map();     // pid -> { id, name, conn, score, streak, correct, lastSeen, answers }
+    const players = new Map();     // pid -> { id, name, char, conn, score, streak, correct, lastSeen, answers }
     let peer = null;
     let pin = null;
     let attempts = 0;
@@ -77,6 +91,13 @@ export function startHost(handlers = {}) {
       get open() { return !!peer && !peer.destroyed; },
 
       setAcceptingJoins(v) { acceptingJoins = v; },
+
+      /** Character ids currently spoken for, optionally ignoring one player. */
+      takenChars(exceptPid) {
+        return [...players.values()]
+          .filter((p) => p.id !== exceptPid && p.char)
+          .map((p) => p.char);
+      },
 
       send(pid, msg) {
         const p = players.get(pid);
@@ -166,6 +187,7 @@ export function startHost(handlers = {}) {
             id: pid,
             conn,
             name: uniqueName(msg.name),
+            char: '',
             score: 0,
             streak: 0,
             bestStreak: 0,
@@ -174,7 +196,11 @@ export function startHost(handlers = {}) {
             lastSeen: Date.now(),
           };
           players.set(pid, player);
-          try { conn.send({ t: 'welcome', pid, name: player.name }); } catch (_) {}
+          // Seat them before choosing a character so the host can see the
+          // rest of the room when it works out what is still free.
+          if (handlers.resolveChar) player.char = handlers.resolveChar(player, cleanCharId(msg.char));
+          const extra = handlers.greeting ? handlers.greeting() : {};
+          try { conn.send({ t: 'welcome', pid, name: player.name, char: player.char, ...extra }); } catch (_) {}
           handlers.onJoin && handlers.onJoin(player);
           return;
         }
@@ -183,7 +209,16 @@ export function startHost(handlers = {}) {
         if (!p) return;
         p.lastSeen = Date.now();
 
-        if (msg.t === 'answer') handlers.onAnswer && handlers.onAnswer(p, msg);
+        if (msg.t === 'answer') { handlers.onAnswer && handlers.onAnswer(p, msg); return; }
+
+        if (msg.t === 'char') {
+          // The host has the last word: a taken character comes back as
+          // whatever it decided to give out instead.
+          const id = handlers.resolveChar ? handlers.resolveChar(p, cleanCharId(msg.id)) : '';
+          p.char = id;
+          try { conn.send({ t: 'char', id }); } catch (_) {}
+          handlers.onChar && handlers.onChar(p);
+        }
       });
 
       const drop = () => {
@@ -240,7 +275,11 @@ export function startHost(handlers = {}) {
 
 /**
  * Join a hosted game.
- * handlers: { onMessage(msg), onClose(reason), onStatus(text) }
+ * handlers: { onMessage(msg), onClose(reason), onStatus(text), char }
+ *
+ * `char` is only a request — the host hands back the character actually
+ * assigned in its welcome, which may be a different one if someone else
+ * got there first.
  */
 export function joinGame(pin, name, handlers = {}) {
   return new Promise((resolve, reject) => {
@@ -284,7 +323,7 @@ export function joinGame(pin, name, handlers = {}) {
       });
 
       conn.on('open', () => {
-        conn.send({ t: 'join', name });
+        conn.send({ t: 'join', name, char: cleanCharId(handlers.char) });
       });
 
       conn.on('data', (raw) => {
@@ -300,6 +339,10 @@ export function joinGame(pin, name, handlers = {}) {
           resolve({
             pid: msg.pid,
             name: msg.name,
+            char: msg.char || '',
+            pack: msg.pack || null,
+            letPick: msg.letPick !== false,
+            anims: msg.anims !== false,
             send(m) { if (conn && conn.open) { try { conn.send(m); } catch (_) {} } },
             leave() {
               closed = true;

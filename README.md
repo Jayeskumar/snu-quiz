@@ -6,7 +6,9 @@ classic LeetCode problems built on them.
 **▶ Play: https://jayeskumar.github.io/snu-quiz/**
 
 Host puts the game PIN on the projector, everyone joins from their phone, questions appear,
-fastest correct answer scores most. Podium and confetti at the end.
+fastest correct answer scores most. Everyone plays as a character — a jumping rabbit, a
+waddling penguin, a hovering robot — that reacts as the answers land. Podium and confetti
+at the end.
 
 There is **no backend and no database**. It is a folder of static files on GitHub Pages.
 
@@ -61,6 +63,54 @@ streak bonus = min(500, (consecutiveCorrect - 1) * 100)        // optional
 
 An instant correct answer is worth ~1000; a correct answer on the buzzer is worth ~500.
 Wrong answers and time-outs score zero and reset the streak.
+
+## Characters
+
+Every player is a character from a **pack** the teacher picks on the setup screen. The
+character shows up in the lobby, jumps when that player answers, cheers or slumps on the
+reveal, and stands on the podium at the end.
+
+Two packs ship today:
+
+| Pack | What is in it | Characters |
+|---|---|---:|
+| **Animals** | 🐰 jumping, hopping, waddling creatures | 28 |
+| **Cartoon crew** | 🤖 robots, wizards, heroes and other troublemakers | 28 |
+
+The host hands each phone a character nobody else has as it joins. Leave **Let players pick
+their own character** on and a student can swap to any free one from their phone; the ones
+already taken are greyed out, and if two students reach for the same animal at the same
+instant the host settles it and tells the loser what they got instead. A phone remembers its
+choice, so the same student turns up as the same fox next lesson.
+
+Characters are emoji plus a CSS motion loop — no image files, no extra requests, and
+**Character animations** turns the movement off for everyone (as does the browser's own
+`prefers-reduced-motion`).
+
+### Adding a pack
+
+Packs live in `PACKS` in `js/avatars.js`. Add an entry and it appears in the teacher's
+picker, in every player's chooser and on the podium — nothing else to wire up:
+
+```js
+{
+  key: 'space',                 // unique; saved in the host's config
+  label: 'Space crew',          // shown to the teacher
+  icon: '\u{1F680}',            // one glyph for the pack card
+  blurb: 'One line under the pack name.',
+  characters: [
+    { id: 'rocket', name: 'Rocket', glyph: '\u{1F680}', anim: 'zoom' },
+    // 16+ characters keeps a whole class from clashing
+  ],
+}
+```
+
+`anim` names one of the loops drawn in `css/style.css`: `jump`, `hop`, `bounce`, `waddle`,
+`float`, `wiggle`, `spin`, `zoom`, `sway`, `stomp`. To add a new one, write the keyframes and
+a matching `.avatar.anim-<name> .face` rule next to the others, then add the name to `ANIMS`.
+
+The host sends the whole pack definition to each player when they join, so a class on an
+older cached copy of the page still sees a pack that only the teacher's build knows about.
 
 ## The question bank
 
@@ -140,6 +190,7 @@ js/app.js           bootstrap, routing, setup screen, question browser
 js/host.js          authoritative game loop (lobby → question → reveal → board → podium)
 js/player.js        joined client; purely reactive to host messages
 js/solo.js          offline single-player loop
+js/avatars.js       character packs, their motion, and the pickers
 js/net.js           WebRTC transport, PIN allocation, heartbeats, reconnect
 js/engine.js        bank loading, quiz building, scoring, ranking
 js/ui.js            DOM helpers and shared screen rendering
@@ -159,6 +210,9 @@ Set per game on the setup screen:
 * **Shuffle answer order** — same question, different tile positions each game.
 * **Streak bonus points** — reward consecutive correct answers.
 * **Show explanations** — display the "why" after each reveal.
+* **Character pack** — which set of characters the class plays as.
+* **Character animations** — turn all character motion off, for everyone.
+* **Let players pick their own character** — off means the host's assignment is final.
 * **Auto-advance** — run hands-free; the host moves on by itself.
 * **Projector mode** — hide the question text on phones so players look up at the big screen.
   Leave it off for remote play, where the phone is the only screen.
@@ -179,8 +233,10 @@ Both host and players need the same parameters.
 ## Accessibility
 
 Answer tiles carry both a colour and a shape (triangle / diamond / circle / square) so they
-are distinguishable without colour vision, plus `aria-label`s naming the shape. Focus rings
-are visible throughout, and `prefers-reduced-motion` disables the animations.
+are distinguishable without colour vision, plus `aria-label`s naming the shape. Every
+character is announced by name rather than as a bare emoji. Focus rings are visible
+throughout, and `prefers-reduced-motion` disables the animations — the characters included,
+whatever the teacher's switch says.
 
 ## Licence
 

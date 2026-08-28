@@ -83,10 +83,22 @@
         <button class="seg-btn" data-diff="hard">Hard</button>
       </div>
 
+      <label class="field-label">Character pack
+        <span class="hint">what everyone plays as</span>
+      </label>
+      <div id="packList" class="pack-grid"></div>
+
+      <div class="solo-only">
+        <label class="field-label">Your character</label>
+        <div id="soloCharGrid" class="char-grid"></div>
+      </div>
+
       <label class="field-label">Options</label>
       <label class="switch"><input type="checkbox" id="optShuffle" checked><span></span>Shuffle answer order</label>
       <label class="switch"><input type="checkbox" id="optStreak" checked><span></span>Streak bonus points</label>
       <label class="switch"><input type="checkbox" id="optExplain" checked><span></span>Show explanations</label>
+      <label class="switch"><input type="checkbox" id="optAnims" checked><span></span>Character animations</label>
+      <label class="switch host-only"><input type="checkbox" id="optLetPick" checked><span></span>Let players pick their own character</label>
       <label class="switch host-only"><input type="checkbox" id="optAutoNext"><span></span>Auto&#8209;advance between questions</label>
       <label class="switch host-only"><input type="checkbox" id="optProjector"><span></span>Projector mode &mdash; hide question text on phones</label>
     </div>
@@ -161,10 +173,18 @@
 <!-- ═══════════════ PLAYER: WAITING ═══════════════ -->
 <section class="screen" data-screen="waiting">
   <div class="stack center">
+    <div class="avatar-hero" id="waitAvatar"></div>
     <div class="nick-badge" id="waitNick">&nbsp;</div>
     <div class="pulse-dots"><i></i><i></i><i></i></div>
     <h2 class="wait-h">You're in!</h2>
     <p class="wait-p">See your nickname on the host's screen?</p>
+
+    <div class="card char-card" id="charCard" hidden>
+      <h3 class="char-h">Pick your character</h3>
+      <div id="charGrid" class="char-grid"></div>
+      <p id="charNote" class="char-note"></p>
+    </div>
+
     <button class="btn btn-ghost" data-nav="home">Leave</button>
   </div>
 </section>
@@ -203,6 +223,8 @@
       </div>
     </div>
 
+    <div id="answerAvatars" class="avatar-strip host-only"></div>
+
     <div class="answers" id="answers">
       <button class="ans a0" data-i="0"><i class="sh tri"></i><span></span></button>
       <button class="ans a1" data-i="1"><i class="sh dia"></i><span></span></button>
@@ -221,12 +243,15 @@
 <section class="screen" data-screen="reveal">
   <div class="reveal">
     <div class="verdict" id="verdict">
+      <div class="verdict-avatar" id="verdictAvatar"></div>
       <div class="verdict-icon" id="verdictIcon">&#10003;</div>
       <h2 id="verdictText">Correct</h2>
       <p class="streak" id="verdictStreak" hidden></p>
       <div class="points" id="verdictPoints">+0</div>
       <p class="rankline" id="verdictRank"></p>
     </div>
+
+    <div id="revealAvatars" class="avatar-strip host-only"></div>
 
     <div class="host-only bars-wrap">
       <div class="bars" id="bars">
