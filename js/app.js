@@ -4,7 +4,11 @@
 
 import * as UI from './ui.js';
 import { $, $$, esc } from './ui.js';
-import { loadBanks, banks, countFor, allQuestions, DIFF_LABEL } from './engine.js';
+import {
+  loadIndex, loadBanks, banks, bankMeta, isEncrypted, isUnlocked,
+  countFor, allQuestions, DIFF_LABEL,
+} from './engine.js';
+import { BadPassphrase } from './lock.js';
 import { cleanName } from './net.js';
 import { sound } from './sound.js';
 import { hostGame } from './host.js';
@@ -14,6 +18,7 @@ import { stop as stopConfetti } from './confetti.js';
 
 const CFG_KEY = 'snuq.cfg';
 const NICK_KEY = 'snuq.nick';
+const PASS_KEY = 'snuq.pass';   // sessionStorage: gone when the tab closes
 
 let game = null;        // the live host/player/solo controller
 let mode = 'host';      // which flavour the setup screen is configuring
@@ -38,7 +43,10 @@ const config = {
   UI.show('boot');
 
   try {
-    await loadBanks();
+    await loadIndex();
+    // An open bank loads straight away; a locked one waits for the passphrase.
+    if (!isEncrypted()) await loadBanks();
+    else await tryCachedPassphrase();
   } catch (err) {
     $('#bootMsg').textContent = err.message +
       '  —  if you opened this file directly, serve it over HTTP instead (see the README).';
@@ -53,10 +61,20 @@ const config = {
 
 /* ══════════════════ config ══════════════════ */
 
+/**
+ * Topic chips must render before the banks are readable, so fall back to the
+ * counts in index.json until the passphrase turns up.
+ */
+function topics() {
+  return isUnlocked()
+    ? banks().map((b) => ({ key: b.key, label: b.label, icon: b.icon, count: b.questions.length }))
+    : bankMeta().map((m) => ({ key: m.key, label: m.label, icon: m.icon || '', count: m.count || 0 }));
+}
+
 function restoreConfig() {
   let saved = null;
   try { saved = JSON.parse(localStorage.getItem(CFG_KEY) || 'null'); } catch (_) {}
-  const keys = banks().map((b) => b.key);
+  const keys = topics().map((b) => b.key);
   if (saved && Array.isArray(saved.topics)) {
     Object.assign(config, saved);
     config.topics = config.topics.filter((t) => keys.includes(t));
@@ -71,11 +89,11 @@ function saveConfig() {
 /* ══════════════════ setup screen ══════════════════ */
 
 function buildTopics() {
-  $('#topicList').innerHTML = banks().map((b) => `
+  $('#topicList').innerHTML = topics().map((b) => `
     <button class="chip ${config.topics.includes(b.key) ? 'is-on' : ''}" data-key="${esc(b.key)}">
       <span class="tick">&#10003;</span>
       <span>${b.icon ? `<span class="ico">${b.icon}</span> ` : ''}${esc(b.label)}</span>
-      <span class="cnt">${b.questions.length}</span>
+      <span class="cnt">${b.count}</span>
     </button>`).join('');
 
   $$('#topicList .chip').forEach((el) => {
@@ -129,6 +147,58 @@ function openSetup(which) {
   UI.show('setup');
 }
 
+/* ══════════════════ unlocking ══════════════════ */
+
+let afterUnlock = null;
+
+/** Silently reuse a passphrase already entered in this tab. */
+async function tryCachedPassphrase() {
+  const cached = sessionStorage.getItem(PASS_KEY);
+  if (!cached) return;
+  try { await loadBanks(cached); } catch (_) { sessionStorage.removeItem(PASS_KEY); }
+}
+
+/**
+ * Host, Solo and Browse all read the question bank, so all three go through
+ * here. Joining a game does not — players are sent their questions by the
+ * host and never touch the data files.
+ */
+function requireBanks(next) {
+  if (isUnlocked()) { next(); return; }
+  afterUnlock = next;
+  $('#unlockPass').value = '';
+  $('#unlockError').textContent = '';
+  UI.show('unlock');
+  setTimeout(() => $('#unlockPass').focus(), 120);
+}
+
+async function submitUnlock() {
+  const pass = $('#unlockPass').value;
+  const err = $('#unlockError');
+  const btn = $('#btnUnlock');
+
+  if (!pass) { err.textContent = 'Enter the passphrase'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Unlocking…';
+  err.textContent = '';
+  try {
+    await loadBanks(pass);
+    sessionStorage.setItem(PASS_KEY, pass);
+    buildTopics();          // counts are exact now that the questions are real
+    syncSetup();
+    const next = afterUnlock;
+    afterUnlock = null;
+    if (next) next();
+  } catch (e) {
+    err.textContent = e instanceof BadPassphrase ? e.message : 'Could not open the question bank: ' + e.message;
+    $('#unlockPass').select();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Unlock';
+  }
+}
+
 /* ══════════════════ navigation ══════════════════ */
 
 function endGame() {
@@ -180,9 +250,13 @@ function wire() {
   });
 
   /* home */
-  $('#btnHost').onclick = () => { sound.click(); openSetup('host'); };
-  $('#btnSolo').onclick = () => { sound.click(); openSetup('solo'); };
-  $('#btnBrowse').onclick = () => { sound.click(); openBrowse(); };
+  $('#btnHost').onclick = () => { sound.click(); requireBanks(() => openSetup('host')); };
+  $('#btnSolo').onclick = () => { sound.click(); requireBanks(() => openSetup('solo')); };
+  $('#btnBrowse').onclick = () => { sound.click(); requireBanks(openBrowse); };
+
+  /* unlock */
+  $('#btnUnlock').onclick = submitUnlock;
+  $('#unlockPass').onkeydown = (e) => { if (e.key === 'Enter') submitUnlock(); };
 
   const goJoin = () => {
     const pin = ($('#homePin').value || '').replace(/\D/g, '');
@@ -207,7 +281,7 @@ function wire() {
 
   $$('.topic-quick .chip-btn').forEach((b) => {
     b.onclick = () => {
-      config.topics = b.dataset.topics === 'all' ? banks().map((x) => x.key) : [banks()[0].key];
+      config.topics = b.dataset.topics === 'all' ? topics().map((x) => x.key) : [topics()[0].key];
       $$('#topicList .chip').forEach((c) => c.classList.toggle('is-on', config.topics.includes(c.dataset.key)));
       sound.click();
       syncSetup();

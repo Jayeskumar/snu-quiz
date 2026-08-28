@@ -128,6 +128,21 @@
 </section>
 
 <!-- ═══════════════ PLAYER: JOIN ═══════════════ -->
+<section class="screen" data-screen="unlock">
+  <div class="stack center">
+    <div class="card join-card">
+      <h2 class="join-h">Teacher passphrase</h2>
+      <p class="unlock-note">The question banks are encrypted. Players do not need this
+         &mdash; they receive questions from you once the game starts.</p>
+      <input id="unlockPass" class="pin-input big" type="password" placeholder="Passphrase"
+             autocomplete="off" aria-label="Teacher passphrase">
+      <p id="unlockError" class="err" role="alert"></p>
+      <button id="btnUnlock" class="btn btn-dark btn-lg btn-block">Unlock</button>
+      <button class="btn btn-ghost btn-block" data-nav="home">Back</button>
+    </div>
+  </div>
+</section>
+
 <section class="screen" data-screen="join">
   <div class="stack center">
     <div class="card join-card">

@@ -2,23 +2,47 @@
    engine.js — question bank loading, quiz building, scoring
    ============================================================ */
 
+import { deriveKey, decryptJSON } from './lock.js';
+
 export const MAX_POINTS = 1000;
 export const STREAK_STEP = 100;
 export const STREAK_CAP = 500;
 
 let BANKS = [];
+let INDEX = null;
 
-/** Load data/index.json and every bank it lists. */
-export async function loadBanks() {
+/**
+ * Load data/index.json — topic names and counts only, never questions.
+ * Players need this much to reach the join screen, so it is never locked.
+ */
+export async function loadIndex() {
   const res = await fetch('data/index.json', { cache: 'no-cache' });
   if (!res.ok) throw new Error('Could not load data/index.json (HTTP ' + res.status + ')');
-  const index = await res.json();
+  INDEX = await res.json();
+  return INDEX;
+}
+
+/** What the index says exists, whether or not the questions are readable yet. */
+export function bankMeta() { return INDEX ? INDEX.banks : []; }
+
+export function isEncrypted() { return !!(INDEX && INDEX.encrypted); }
+
+export function isUnlocked() { return BANKS.length > 0; }
+
+/**
+ * Load every bank the index lists, decrypting first when the set is locked.
+ * Throws BadPassphrase if the passphrase is wrong.
+ */
+export async function loadBanks(passphrase) {
+  if (!INDEX) await loadIndex();
+  const key = INDEX.encrypted ? await deriveKey(passphrase, INDEX.kdf) : null;
 
   const loaded = await Promise.all(
-    index.banks.map(async (meta) => {
+    INDEX.banks.map(async (meta) => {
       const r = await fetch('data/' + meta.file, { cache: 'no-cache' });
       if (!r.ok) throw new Error('Could not load data/' + meta.file);
-      const bank = await r.json();
+      const payload = await r.json();
+      const bank = key ? await decryptJSON(payload, key) : payload;
       const questions = (bank.questions || []).filter(validQuestion).map((q) => ({
         ...q,
         bank: meta.key,
@@ -37,9 +61,9 @@ function validQuestion(q) {
   return (
     q &&
     typeof q.question === 'string' && q.question.trim() &&
-    Array.isArray(q.options) && q.options.length === 4 &&
+    Array.isArray(q.options) && q.options.length >= 2 && q.options.length <= 4 &&
     q.options.every((o) => typeof o === 'string' && o.trim()) &&
-    Number.isInteger(q.answer) && q.answer >= 0 && q.answer <= 3
+    Number.isInteger(q.answer) && q.answer >= 0 && q.answer < q.options.length
   );
 }
 

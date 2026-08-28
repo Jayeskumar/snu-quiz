@@ -98,13 +98,17 @@ export function renderQuestion(q, { role, index, total, interactive, onPick }) {
   $('#lockedNote').hidden = true;
   $('#answeredNum').textContent = '0';
 
+  // Most questions carry four options, but a true/false question carries two,
+  // so any tile past the end of the list is taken out of play entirely.
   $$('.ans', wrap).forEach((btn, i) => {
     const label = btn.querySelector('span');
-    label.textContent = q.options[i];
+    const used = i < q.options.length;
+    btn.hidden = !used;
+    label.textContent = used ? q.options[i] : '';
     btn.classList.remove('picked', 'correct');
-    btn.disabled = !interactive;
-    btn.setAttribute('aria-label', `${SHAPE_NAME[i]}: ${q.options[i]}`);
-    btn.onclick = interactive ? () => onPick(i) : null;
+    btn.disabled = !interactive || !used;
+    btn.setAttribute('aria-label', used ? `${SHAPE_NAME[i]}: ${q.options[i]}` : '');
+    btn.onclick = interactive && used ? () => onPick(i) : null;
   });
 
   // On a player's phone during a hosted game the big screen carries the

@@ -281,8 +281,10 @@ body.muted .sound-toggle .off { display: inline; }
 .or span { position: relative; background: var(--white); padding: 0 12px; text-transform: uppercase; }
 
 .home-actions { display: flex; flex-direction: column; gap: 10px; }
-.home-actions .btn-ghost { box-shadow: inset 0 0 0 2px #d4d4d4; color: var(--ink); }
-.home-actions .btn-ghost:hover { background: #f4f4f4; }
+/* A ghost button is white-on-purple for the backdrop, so inside a white card
+   it needs ink text and a grey outline or it vanishes into the card. */
+.card .btn-ghost { box-shadow: inset 0 0 0 2px #d4d4d4; color: var(--ink); }
+.card .btn-ghost:hover:not(:disabled) { background: #f4f4f4; }
 
 .fineprint { font-size: 12px; opacity: .7; font-weight: 600; margin: 0; text-align: center; }
 
@@ -435,6 +437,7 @@ body.muted .sound-toggle .off { display: inline; }
 /* ─────────── join / waiting ─────────── */
 .join-card { display: flex; flex-direction: column; gap: 12px; }
 .join-h { margin: 0 0 4px; font-size: 22px; font-weight: 900; color: var(--ink); text-align: center; }
+.unlock-note { margin: 0 0 4px; font-size: 13px; line-height: 1.45; color: var(--ink); opacity: .7; text-align: center; }
 .err { color: var(--red); font-size: 13px; font-weight: 800; margin: 0; min-height: 18px; text-align: center; }
 
 .nick-badge {
@@ -575,6 +578,7 @@ body.muted .sound-toggle .off { display: inline; }
 .a2 { background: var(--yellow); }
 .a3 { background: var(--green); }
 
+.ans[hidden] { display: none; }
 .answers.locked .ans { cursor: default; }
 .answers.locked .ans:not(.picked) { opacity: .35; }
 .ans.picked { transform: scale(1.02); box-shadow: 0 0 0 4px #fff, var(--shadow-btn); }

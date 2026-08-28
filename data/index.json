@@ -1,47 +1,61 @@
 {
  "version": 1,
+ "encrypted": true,
+ "kdf": {
+  "name": "PBKDF2",
+  "hash": "SHA-256",
+  "iterations": 250000,
+  "salt": "E3o9UkUMua4jL0n+GQRC2A=="
+ },
  "banks": [
   {
    "key": "ll-java",
    "label": "Linked Lists in Java",
    "icon": "🔗",
-   "file": "ll-java.json",
+   "file": "ll-java.enc",
    "count": 26
   },
   {
    "key": "ll-leetcode",
    "label": "LeetCode: Linked Lists",
    "icon": "🧩",
-   "file": "ll-leetcode.json",
+   "file": "ll-leetcode.enc",
    "count": 26
   },
   {
    "key": "stacks",
    "label": "Stacks",
    "icon": "📚",
-   "file": "stacks.json",
+   "file": "stacks.enc",
    "count": 24
   },
   {
    "key": "queues",
    "label": "Queues & Deques",
    "icon": "🚶",
-   "file": "queues.json",
+   "file": "queues.enc",
    "count": 24
   },
   {
    "key": "sq-leetcode",
    "label": "LeetCode: Stacks & Queues",
    "icon": "🎯",
-   "file": "sq-leetcode.json",
+   "file": "sq-leetcode.enc",
    "count": 22
   },
   {
    "key": "mixed",
    "label": "Problem Solving & Complexity",
    "icon": "🧠",
-   "file": "mixed.json",
+   "file": "mixed.enc",
    "count": 18
+  },
+  {
+   "key": "kahoot-sq",
+   "label": "Kahoot: Stacks & Queues",
+   "icon": "🎪",
+   "file": "kahoot-sq.enc",
+   "count": 8
   }
  ]
 }
