@@ -49,6 +49,7 @@
     </div>
     <p class="fineprint">Peer&#8209;to&#8209;peer. No account, no server, no database.</p>
   </div>
+  <div class="parade" aria-hidden="true"><div class="parade-track" id="paradeTrack"></div></div>
 </section>
 
 <!-- ═══════════════ SETUP (host + solo) ═══════════════ -->
@@ -97,7 +98,7 @@
       <label class="switch"><input type="checkbox" id="optShuffle" checked><span></span>Shuffle answer order</label>
       <label class="switch"><input type="checkbox" id="optStreak" checked><span></span>Streak bonus points</label>
       <label class="switch"><input type="checkbox" id="optExplain" checked><span></span>Show explanations</label>
-      <label class="switch"><input type="checkbox" id="optAnims" checked><span></span>Character animations</label>
+      <label class="switch"><input type="checkbox" id="optAnims" checked><span></span>Animations</label>
       <label class="switch host-only"><input type="checkbox" id="optLetPick" checked><span></span>Let players pick their own character</label>
       <label class="switch host-only"><input type="checkbox" id="optAutoNext"><span></span>Auto&#8209;advance between questions</label>
       <label class="switch host-only"><input type="checkbox" id="optProjector"><span></span>Projector mode &mdash; hide question text on phones</label>
@@ -194,7 +195,12 @@
   <div class="stack center">
     <p id="readyTopic" class="ready-topic"></p>
     <h2 class="ready-h" id="readyText">Get ready</h2>
-    <div class="countdown" id="readyNum">3</div>
+    <div class="countdown-wrap">
+      <svg class="countdown-ring" id="readyRing" viewBox="0 0 100 100" aria-hidden="true">
+        <circle cx="50" cy="50" r="46"></circle>
+      </svg>
+      <div class="countdown" id="readyNum">3</div>
+    </div>
   </div>
 </section>
 

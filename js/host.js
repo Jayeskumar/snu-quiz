@@ -84,7 +84,7 @@ export async function hostGame(config, onExit) {
   function chipOf(pid) { return $(`.pchip[data-pid="${CSS.escape(pid)}"]`); }
 
   function paintChip(el, p) {
-    el.innerHTML = avatarHTML(config.pack, p.char, { size: 'sm', label: p.name });
+    el.innerHTML = avatarHTML(config.pack, p.char, { size: 'sm', mood: 'dance', label: p.name });
     const name = document.createElement('span');
     name.className = 'pname';
     name.textContent = p.name;
@@ -287,7 +287,7 @@ export async function hostGame(config, onExit) {
       if (phase !== 'revealed') return;
       paintStrip($('#revealAvatars'), (p) => {
         const a = round.answers.get(p.id);
-        return a && a.correct ? 'happy' : 'sad';
+        return a && a.correct ? 'dance' : 'sad';
       }, 'md');
       UI.renderReveal({
         isHost: true,

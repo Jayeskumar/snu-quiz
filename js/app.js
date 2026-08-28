@@ -64,6 +64,7 @@ const config = {
   restoreConfig();
   buildTopics();
   buildPacks();
+  buildParade();
   wire();
   route();
 })();
@@ -142,11 +143,11 @@ function buildPacks() {
             aria-pressed="${p.key === config.pack}">
       <span class="tick">&#10003;</span>
       <span class="pack-body">
-        <span class="pack-name">${esc(p.icon)} ${esc(p.label)}</span>
+        <span class="pack-name">${esc(p.label)}</span>
         <span class="pack-blurb">${esc(p.blurb)} &middot; ${p.characters.length} characters</span>
         <span class="pack-peek">
           ${p.characters.slice(0, 7).map((c, i) =>
-            avatarHTML(p.key, c.id, { size: 'sm', delay: i * 140 })).join('')}
+            avatarHTML(p.key, c.id, { size: 'sm', mood: 'dance', delay: i * 140 })).join('')}
         </span>
       </span>
     </button>`).join('');
@@ -162,9 +163,31 @@ function buildPacks() {
         c.setAttribute('aria-pressed', String(on));
       });
       sound.click();
+      buildParade();
       syncSetup();
     };
   });
+}
+
+/**
+ * The dance floor along the bottom of the home screen. The track holds the
+ * line-up twice over so the marquee can loop on itself without a seam.
+ */
+function buildParade() {
+  const chars = shuffle(packChars(config.pack)).slice(0, 12);
+  const line = chars
+    .map((c, i) => avatarHTML(config.pack, c.id, { size: 'lg', mood: 'dance', delay: i * 130 }))
+    .join('');
+  $('#paradeTrack').innerHTML = line + line;
+}
+
+function shuffle(list) {
+  const a = list.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
 
 /** Solo practice has nobody to negotiate with, so it picks straight away. */

@@ -53,7 +53,7 @@ export async function playerGame(pin, nick, onExit) {
   sound.join();
 
   function paintMe() {
-    $('#waitAvatar').innerHTML = avatarHTML(packKey, myChar, { size: 'xl', delay: 0 });
+    $('#waitAvatar').innerHTML = avatarHTML(packKey, myChar, { size: 'xl', mood: 'dance', delay: 0 });
   }
 
   /**

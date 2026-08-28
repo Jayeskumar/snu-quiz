@@ -22,16 +22,28 @@
        ],
      }
 
-   `anim` names a loop defined in css/style.css as `.anim-<name>`.
-   The names currently drawn there are listed in ANIMS; anything
-   else falls back to a gentle bounce, so a pack that arrives from
-   a host running a newer build still renders and still moves.
+   `anim` names the idle loop, defined in css/style.css as
+   `.anim-<name>`. The names currently drawn there are listed in
+   ANIMS; anything else falls back to a gentle bounce, so a pack
+   that arrives from a host running a newer build still renders
+   and still moves.
+
+   `dance` is optional and names a loop from DANCES — the bigger
+   move a character pulls out in the lobby, on the scoreboard and
+   on the podium. Leave it out and one is chosen from the id, so a
+   character always dances the same way.
    ============================================================ */
 
-/** Motion loops that css/style.css knows how to draw. */
+/** Idle loops that css/style.css knows how to draw. */
 export const ANIMS = [
   'jump', 'hop', 'bounce', 'waddle', 'float',
   'wiggle', 'spin', 'zoom', 'sway', 'stomp',
+];
+
+/** The bigger moves, for when there is something to celebrate. */
+export const DANCES = [
+  'disco', 'shimmy', 'bop', 'twirl', 'groove',
+  'jive', 'slide', 'headbang', 'worm', 'robot',
 ];
 
 const FALLBACK_ANIM = 'bounce';
@@ -43,9 +55,9 @@ export const PACKS = [
     icon: '\u{1F430}',
     blurb: 'Jumping, hopping, waddling creatures.',
     characters: [
-      { id: 'rabbit',    name: 'Rabbit',    glyph: '\u{1F430}', anim: 'jump' },
-      { id: 'frog',      name: 'Frog',      glyph: '\u{1F438}', anim: 'hop' },
-      { id: 'kangaroo',  name: 'Kangaroo',  glyph: '\u{1F998}', anim: 'jump' },
+      { id: 'rabbit',    name: 'Rabbit',    glyph: '\u{1F430}', anim: 'jump', dance: 'jive' },
+      { id: 'frog',      name: 'Frog',      glyph: '\u{1F438}', anim: 'hop', dance: 'bop' },
+      { id: 'kangaroo',  name: 'Kangaroo',  glyph: '\u{1F998}', anim: 'jump', dance: 'jive' },
       { id: 'cat',       name: 'Cat',       glyph: '\u{1F431}', anim: 'wiggle' },
       { id: 'dog',       name: 'Dog',       glyph: '\u{1F436}', anim: 'bounce' },
       { id: 'fox',       name: 'Fox',       glyph: '\u{1F98A}', anim: 'hop' },
@@ -53,8 +65,8 @@ export const PACKS = [
       { id: 'koala',     name: 'Koala',     glyph: '\u{1F428}', anim: 'sway' },
       { id: 'lion',      name: 'Lion',      glyph: '\u{1F981}', anim: 'stomp' },
       { id: 'tiger',     name: 'Tiger',     glyph: '\u{1F42F}', anim: 'jump' },
-      { id: 'monkey',    name: 'Monkey',    glyph: '\u{1F435}', anim: 'jump' },
-      { id: 'penguin',   name: 'Penguin',   glyph: '\u{1F427}', anim: 'waddle' },
+      { id: 'monkey',    name: 'Monkey',    glyph: '\u{1F435}', anim: 'jump', dance: 'disco' },
+      { id: 'penguin',   name: 'Penguin',   glyph: '\u{1F427}', anim: 'waddle', dance: 'shimmy' },
       { id: 'turtle',    name: 'Turtle',    glyph: '\u{1F422}', anim: 'sway' },
       { id: 'owl',       name: 'Owl',       glyph: '\u{1F989}', anim: 'float' },
       { id: 'bear',      name: 'Bear',      glyph: '\u{1F43B}', anim: 'waddle' },
@@ -63,14 +75,14 @@ export const PACKS = [
       { id: 'horse',     name: 'Horse',     glyph: '\u{1F434}', anim: 'hop' },
       { id: 'chick',     name: 'Chick',     glyph: '\u{1F423}', anim: 'hop' },
       { id: 'duck',      name: 'Duck',      glyph: '\u{1F986}', anim: 'waddle' },
-      { id: 'dolphin',   name: 'Dolphin',   glyph: '\u{1F42C}', anim: 'float' },
-      { id: 'octopus',   name: 'Octopus',   glyph: '\u{1F419}', anim: 'wiggle' },
-      { id: 'bee',       name: 'Bee',       glyph: '\u{1F41D}', anim: 'zoom' },
-      { id: 'butterfly', name: 'Butterfly', glyph: '\u{1F98B}', anim: 'float' },
-      { id: 'hedgehog',  name: 'Hedgehog',  glyph: '\u{1F994}', anim: 'spin' },
-      { id: 'elephant',  name: 'Elephant',  glyph: '\u{1F418}', anim: 'stomp' },
+      { id: 'dolphin',   name: 'Dolphin',   glyph: '\u{1F42C}', anim: 'float', dance: 'worm' },
+      { id: 'octopus',   name: 'Octopus',   glyph: '\u{1F419}', anim: 'wiggle', dance: 'worm' },
+      { id: 'bee',       name: 'Bee',       glyph: '\u{1F41D}', anim: 'zoom', dance: 'shimmy' },
+      { id: 'butterfly', name: 'Butterfly', glyph: '\u{1F98B}', anim: 'float', dance: 'twirl' },
+      { id: 'hedgehog',  name: 'Hedgehog',  glyph: '\u{1F994}', anim: 'spin', dance: 'twirl' },
+      { id: 'elephant',  name: 'Elephant',  glyph: '\u{1F418}', anim: 'stomp', dance: 'headbang' },
       { id: 'crab',      name: 'Crab',      glyph: '\u{1F980}', anim: 'waddle' },
-      { id: 'snail',     name: 'Snail',     glyph: '\u{1F40C}', anim: 'sway' },
+      { id: 'snail',     name: 'Snail',     glyph: '\u{1F40C}', anim: 'sway', dance: 'worm' },
     ],
   },
   {
@@ -79,29 +91,29 @@ export const PACKS = [
     icon: '\u{1F916}',
     blurb: 'Robots, wizards, heroes and other troublemakers.',
     characters: [
-      { id: 'robot',     name: 'Robot',      glyph: '\u{1F916}', anim: 'stomp' },
+      { id: 'robot',     name: 'Robot',      glyph: '\u{1F916}', anim: 'stomp', dance: 'robot' },
       { id: 'alien',     name: 'Alien',      glyph: '\u{1F47E}', anim: 'zoom' },
-      { id: 'ghost',     name: 'Ghost',      glyph: '\u{1F47B}', anim: 'float' },
+      { id: 'ghost',     name: 'Ghost',      glyph: '\u{1F47B}', anim: 'float', dance: 'slide' },
       { id: 'unicorn',   name: 'Unicorn',    glyph: '\u{1F984}', anim: 'hop' },
       { id: 'dragon',    name: 'Dragon',     glyph: '\u{1F432}', anim: 'float' },
-      { id: 'wizard',    name: 'Wizard',     glyph: '\u{1F9D9}', anim: 'sway' },
+      { id: 'wizard',    name: 'Wizard',     glyph: '\u{1F9D9}', anim: 'sway', dance: 'groove' },
       { id: 'hero',      name: 'Superhero',  glyph: '\u{1F9B8}', anim: 'zoom' },
       { id: 'villain',   name: 'Supervillain', glyph: '\u{1F9B9}', anim: 'wiggle' },
       { id: 'ninja',     name: 'Ninja',      glyph: '\u{1F977}', anim: 'wiggle' },
       { id: 'astronaut', name: 'Astronaut',  glyph: '\u{1F9D1}\u{200D}\u{1F680}', anim: 'float' },
       { id: 'cowboy',    name: 'Cowboy',     glyph: '\u{1F920}', anim: 'hop' },
-      { id: 'clown',     name: 'Clown',      glyph: '\u{1F921}', anim: 'bounce' },
-      { id: 'mermaid',   name: 'Merperson',  glyph: '\u{1F9DC}', anim: 'sway' },
+      { id: 'clown',     name: 'Clown',      glyph: '\u{1F921}', anim: 'bounce', dance: 'disco' },
+      { id: 'mermaid',   name: 'Merperson',  glyph: '\u{1F9DC}', anim: 'sway', dance: 'groove' },
       { id: 'fairy',     name: 'Fairy',      glyph: '\u{1F9DA}', anim: 'float' },
-      { id: 'vampire',   name: 'Vampire',    glyph: '\u{1F9DB}', anim: 'jump' },
-      { id: 'zombie',    name: 'Zombie',     glyph: '\u{1F9DF}', anim: 'waddle' },
+      { id: 'vampire',   name: 'Vampire',    glyph: '\u{1F9DB}', anim: 'jump', dance: 'headbang' },
+      { id: 'zombie',    name: 'Zombie',     glyph: '\u{1F9DF}', anim: 'waddle', dance: 'worm' },
       { id: 'genie',     name: 'Genie',      glyph: '\u{1F9DE}', anim: 'float' },
       { id: 'elf',       name: 'Elf',        glyph: '\u{1F9DD}', anim: 'hop' },
-      { id: 'snowman',   name: 'Snowman',    glyph: '\u{26C4}',  anim: 'bounce' },
-      { id: 'dino',      name: 'Dinosaur',   glyph: '\u{1F996}', anim: 'stomp' },
-      { id: 'rocket',    name: 'Rocket',     glyph: '\u{1F680}', anim: 'zoom' },
-      { id: 'ufo',       name: 'Flying saucer', glyph: '\u{1F6F8}', anim: 'float' },
-      { id: 'star',      name: 'Star',       glyph: '\u{2B50}',  anim: 'spin' },
+      { id: 'snowman',   name: 'Snowman',    glyph: '\u{26C4}',  anim: 'bounce', dance: 'bop' },
+      { id: 'dino',      name: 'Dinosaur',   glyph: '\u{1F996}', anim: 'stomp', dance: 'headbang' },
+      { id: 'rocket',    name: 'Rocket',     glyph: '\u{1F680}', anim: 'zoom', dance: 'slide' },
+      { id: 'ufo',       name: 'Flying saucer', glyph: '\u{1F6F8}', anim: 'float', dance: 'twirl' },
+      { id: 'star',      name: 'Star',       glyph: '\u{2B50}',  anim: 'spin', dance: 'twirl' },
       { id: 'sun',       name: 'Sunshine',   glyph: '\u{1F31E}', anim: 'spin' },
       { id: 'pumpkin',   name: 'Pumpkin',    glyph: '\u{1F383}', anim: 'bounce' },
       { id: 'detective', name: 'Detective',  glyph: '\u{1F575}', anim: 'sway' },
@@ -119,6 +131,8 @@ export const DEFAULT_PACK = PACKS[0].key;
  * own teacher picker — it only has to render.
  */
 const RECEIVED = new Map();
+
+import { figureSVG } from './characters.js';
 
 const escMap = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => escMap[c]);
@@ -152,6 +166,7 @@ export function registerPack(def) {
       name: String((c && c.name) || '').slice(0, 32) || 'Player',
       glyph: String((c && c.glyph) || '').slice(0, 16) || '\u{1F642}',
       anim: ANIMS.includes(c && c.anim) ? c.anim : FALLBACK_ANIM,
+      dance: DANCES.includes(c && c.dance) ? c.dance : '',
     }))
     .filter((c) => c.id);
   if (!characters.length) return null;
@@ -175,7 +190,9 @@ export function packPayload(key) {
     label: p.label,
     icon: p.icon,
     blurb: p.blurb,
-    characters: p.characters.map((c) => ({ id: c.id, name: c.name, glyph: c.glyph, anim: c.anim })),
+    characters: p.characters.map((c) => ({
+      id: c.id, name: c.name, glyph: c.glyph, anim: c.anim, dance: danceOf(c),
+    })),
   };
 }
 
@@ -212,6 +229,17 @@ export function pickFree(packKey, taken = [], preferred = '') {
   return best.id;
 }
 
+/**
+ * A character's dance. Packs may name one; the rest get a stable pick from
+ * their id, so nobody has to fill in a second field for 28 characters and
+ * the fox always dances the same way.
+ */
+export function danceOf(c) {
+  if (!c) return DANCES[0];
+  if (DANCES.includes(c.dance)) return c.dance;
+  return DANCES[hashCode(c.id + '/dance') % DANCES.length];
+}
+
 /* ─────────── remembering a choice ───────────
    A student who picked the fox last lesson gets the fox again, per pack,
    plus whichever they used most recently so the very first join already
@@ -240,7 +268,7 @@ export function rememberChar(packKey, charId) {
 /* ─────────── rendering ─────────── */
 
 const SIZES = ['xs', 'sm', 'md', 'lg', 'xl'];
-const MOODS = ['idle', 'happy', 'sad', 'still'];
+const MOODS = ['idle', 'happy', 'sad', 'still', 'dance'];
 
 /**
  * One avatar as HTML.
@@ -251,12 +279,20 @@ export function avatarHTML(packKey, charId, opts = {}) {
   const size = SIZES.includes(opts.size) ? opts.size : 'md';
   const mood = MOODS.includes(opts.mood) ? opts.mood : 'idle';
   const anim = ANIMS.includes(c.anim) ? c.anim : FALLBACK_ANIM;
+  const dance = danceOf(c);
   const delay = Number.isFinite(opts.delay) ? opts.delay : hashCode(c.id) % 900;
   const pid = opts.pid ? ` data-pid="${esc(opts.pid)}"` : '';
   const label = opts.label ? `${opts.label} (${c.name})` : c.name;
-  return `<span class="avatar av-${size} anim-${anim} is-${mood}"${pid}` +
+  // Drawn characters have moving ears, arms, legs and eyes. Artwork is only
+  // used for a pack this build actually ships: a pack that arrived from
+  // another host falls back to its emoji rather than borrowing whatever
+  // happens to share a character id here. The body loops animate both.
+  const own = PACKS.some((p) => p.key === getPack(packKey).key);
+  const inner = (own && figureSVG(c.id)) || `<span class="face">${esc(c.glyph)}</span>`;
+
+  return `<span class="avatar av-${size} anim-${anim} dance-${dance} is-${mood}"${pid}` +
          ` style="--d:${delay}ms" role="img" aria-label="${esc(label)}" title="${esc(c.name)}">` +
-         `<span class="face">${esc(c.glyph)}</span></span>`;
+         inner + '</span>';
 }
 
 /** Same thing as a live element, for code that would rather not touch innerHTML. */
@@ -274,7 +310,7 @@ export function setMood(el, mood) {
 /** Replay whatever the avatar is doing — used when a player answers. */
 export function poke(el) {
   if (!el) return;
-  const face = el.querySelector('.face');
+  const face = el.querySelector('.face, .fig .face');
   if (!face) return;
   el.classList.add('is-poked');
   face.style.animation = 'none';
