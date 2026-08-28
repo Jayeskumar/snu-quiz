@@ -271,7 +271,7 @@ export function renderScoreboard(rows, youId, note) {
   list.innerHTML = rows.slice(0, 8).map((p, i) => `
     <li class="${p.id === youId ? 'is-you' : ''}" style="animation-delay:${i * 55}ms">
       <span class="rk">${p.rank}</span>
-      ${avatarHTML(pack, p.char, { size: 'sm', delay: i * 120, label: p.name })}
+      ${avatarHTML(pack, p.char, { size: 'sm', mood: 'dance', delay: i * 120, label: p.name })}
       <span class="nm">${esc(p.name)}</span>
       ${p.delta > 0 ? `<span class="dl">+${p.delta}</span>` : ''}
       <span class="sc">${p.score}</span>
@@ -293,7 +293,7 @@ export function renderPodium(rows, youId, note) {
     const p = rows[0];
     board.innerHTML = p
       ? `<div class="pod pod-1">
-           ${avatarHTML(pack, p.char, { size: 'lg', mood: 'happy', delay: 0, label: p.name })}
+           ${avatarHTML(pack, p.char, { size: 'lg', mood: 'dance', delay: 0, label: p.name })}
            <span class="who">${esc(p.name)}</span>
            <span class="pts">${p.score}</span>
            <div class="col">&#127942;</div>
@@ -314,7 +314,7 @@ export function renderPodium(rows, youId, note) {
   board.innerHTML = order.map((p, i) => {
     if (!p) return '<div></div>';
     return `<div class="pod pod-${place[i]}">
-      ${avatarHTML(pack, p.char, { size: 'lg', mood: 'happy', delay: i * 220, label: p.name })}
+      ${avatarHTML(pack, p.char, { size: 'lg', mood: 'dance', delay: i * 220, label: p.name })}
       <span class="who">${esc(p.name)}</span>
       <span class="pts">${p.score}</span>
       <div class="col">${place[i]}</div>
@@ -325,7 +325,7 @@ export function renderPodium(rows, youId, note) {
   $('#restList').innerHTML = rest.map((p) => `
     <li class="${p.id === youId ? 'is-you' : ''}">
       <span class="rk">${p.rank}</span>
-      ${avatarHTML(pack, p.char, { size: 'xs', label: p.name })}
+      ${avatarHTML(pack, p.char, { size: 'xs', mood: 'dance', label: p.name })}
       <span class="nm">${esc(p.name)}</span>
       <span class="sc">${p.score}</span>
     </li>`).join('');

@@ -6,9 +6,10 @@ classic LeetCode problems built on them.
 **▶ Play: https://jayeskumar.github.io/snu-quiz/**
 
 Host puts the game PIN on the projector, everyone joins from their phone, questions appear,
-fastest correct answer scores most. Everyone plays as a character — a jumping rabbit, a
-waddling penguin, a hovering robot — that reacts as the answers land. Podium and confetti
-at the end.
+fastest correct answer scores most. Everyone plays as a drawn character — a rabbit whose
+ears flop as it jumps, a penguin that waddles, a robot that stomps — and they dance in the
+lobby, jump when their player answers and cheer or slump on the reveal. Podium, crown and
+confetti at the end.
 
 There is **no backend and no database**. It is a folder of static files on GitHub Pages.
 
@@ -66,9 +67,14 @@ Wrong answers and time-outs score zero and reset the streak.
 
 ## Characters
 
-Every player is a character from a **pack** the teacher picks on the setup screen. The
-character shows up in the lobby, jumps when that player answers, cheers or slumps on the
-reveal, and stands on the podium at the end.
+Every player is a character from a **pack** the teacher picks on the setup screen. They
+dance in the lobby, jump when that player answers, cheer or slump on the reveal, and dance
+on the podium under a crown at the end.
+
+The characters are **drawn**, not emoji — each one is an inline SVG whose ears, arms, legs,
+tail and eyes are separate pieces that move independently, so a dance is a real dance and
+not a wobbling icon. Ten idle loops and ten dances share one skeleton, so every character
+can perform every move.
 
 Two packs ship today:
 
@@ -83,14 +89,15 @@ already taken are greyed out, and if two students reach for the same animal at t
 instant the host settles it and tells the loser what they got instead. A phone remembers its
 choice, so the same student turns up as the same fox next lesson.
 
-Characters are emoji plus a CSS motion loop — no image files, no extra requests, and
-**Character animations** turns the movement off for everyone (as does the browser's own
-`prefers-reduced-motion`).
+It is all SVG and CSS keyframes — no sprite sheets, no animation library, no image files
+and no extra requests. The **Animations** switch stops all of it for everyone, as does the
+browser's own `prefers-reduced-motion`.
 
 ### Adding a pack
 
-Packs live in `PACKS` in `js/avatars.js`. Add an entry and it appears in the teacher's
-picker, in every player's chooser and on the podium — nothing else to wire up:
+A pack is data in `PACKS` in `js/avatars.js`; the artwork for each character is a line in
+`SPECS` in `js/characters.js`. Add both and the pack appears in the teacher's picker, in
+every player's chooser and on the podium — nothing else to wire up:
 
 ```js
 {
@@ -99,18 +106,39 @@ picker, in every player's chooser and on the podium — nothing else to wire up:
   icon: '\u{1F680}',            // one glyph for the pack card
   blurb: 'One line under the pack name.',
   characters: [
-    { id: 'rocket', name: 'Rocket', glyph: '\u{1F680}', anim: 'zoom' },
+    { id: 'rocket', name: 'Rocket', glyph: '\u{1F680}', anim: 'zoom', dance: 'slide' },
     // 16+ characters keeps a whole class from clashing
   ],
 }
 ```
 
-`anim` names one of the loops drawn in `css/style.css`: `jump`, `hop`, `bounce`, `waddle`,
-`float`, `wiggle`, `spin`, `zoom`, `sway`, `stomp`. To add a new one, write the keyframes and
-a matching `.avatar.anim-<name> .face` rule next to the others, then add the name to `ANIMS`.
+`anim` is the idle loop and `dance` the celebration, both drawn in `css/style.css`:
+
+| | |
+|---|---|
+| `anim` | `jump` `hop` `bounce` `waddle` `float` `wiggle` `spin` `zoom` `sway` `stomp` |
+| `dance` | `disco` `shimmy` `bop` `twirl` `groove` `jive` `slide` `headbang` `worm` `robot` |
+
+`dance` is optional — leave it out and one is picked from the id, so a character always
+dances the same way. To add a move, write the keyframes and a matching rule next to the
+others and add the name to `ANIMS` or `DANCES`.
+
+Then draw the character. `SPECS` in `js/characters.js` maps a character id to one of seven
+templates — `critter`, `bird`, `swim`, `bug`, `person`, `bot`, `orb` — plus colours and the
+two or three features that make it recognisable:
+
+```js
+rocket: { tpl: 'bot', main: '#e8503a', alt: '#c53a26', glow: '#a8e6ff', oneAntenna: true },
+```
+
+Every template lays its pieces on the same skeleton in a 100 x 100 box, and each moving
+piece carries its own `transform-origin`, which is why one keyframe can rotate a rabbit's
+ear and a penguin's wing alike. A character with no `SPECS` entry falls back to its emoji,
+still animated by the body loops.
 
 The host sends the whole pack definition to each player when they join, so a class on an
-older cached copy of the page still sees a pack that only the teacher's build knows about.
+older cached copy of the page still sees a pack that only the teacher's build knows about —
+as emoji, since that build has no artwork for it.
 
 ## The question bank
 
@@ -191,6 +219,7 @@ js/host.js          authoritative game loop (lobby → question → reveal → b
 js/player.js        joined client; purely reactive to host messages
 js/solo.js          offline single-player loop
 js/avatars.js       character packs, their motion, and the pickers
+js/characters.js    the drawn characters — SVG templates and per-character art
 js/net.js           WebRTC transport, PIN allocation, heartbeats, reconnect
 js/engine.js        bank loading, quiz building, scoring, ranking
 js/ui.js            DOM helpers and shared screen rendering
@@ -211,7 +240,7 @@ Set per game on the setup screen:
 * **Streak bonus points** — reward consecutive correct answers.
 * **Show explanations** — display the "why" after each reveal.
 * **Character pack** — which set of characters the class plays as.
-* **Character animations** — turn all character motion off, for everyone.
+* **Animations** — turn all motion off, for everyone.
 * **Let players pick their own character** — off means the host's assignment is final.
 * **Auto-advance** — run hands-free; the host moves on by itself.
 * **Projector mode** — hide the question text on phones so players look up at the big screen.
